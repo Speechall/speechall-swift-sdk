@@ -1,0 +1,1523 @@
+openapi: 3.0.0
+# x-fern-sdk-group-name: api
+info:
+  title: Speechall API
+  description: |
+    The Speechall REST API provides powerful and flexible speech-to-text capabilities.
+    It allows you to transcribe audio files using various underlying STT providers and models,
+    optionally apply custom text replacement rules, and access results in multiple formats.
+    The API includes standard endpoints for transcription and endpoints compatible with the OpenAI API structure.
+  version: 0.1.0
+  termsOfService: https://speechall.com/terms
+  contact:
+    name: Speechall Support
+    url: https://speechall.com/contact # Note: URL seems unrelated to Speechall, kept as provided.
+  license:
+    name: MIT
+    url: https://github.com/Speechall/speechall-openapi/blob/main/LICENSE
+servers:
+  - url: https://api.speechall.com/v1
+    description: The version 1 endpoint of the Speechall API.
+tags:
+  - name: Speech-to-Text
+    description: Primary endpoints for converting audio streams or files into text transcripts.
+  - name: OpenAI-Compatible Speech-to-Text
+    description: Endpoints that mimic the request and response structure of OpenAI's `/audio/transcriptions` and `/audio/translations` endpoints, allowing for easier integration if migrating from or using OpenAI's SDKs.
+  - name: Replacement Rules
+    description: Operations for creating and managing custom rulesets to find and replace text within transcriptions.
+paths:
+  /transcribe:
+    post:
+      operationId: transcribe
+      tags:
+        - Speech-to-Text
+      summary: Upload an audio file directly and receive a transcription.
+      description: |
+        This endpoint allows you to send raw audio data in the request body for transcription.
+        You can specify the desired model, language, output format, and various provider-specific features using query parameters.
+        Suitable for transcribing local audio files.
+      parameters:
+        # Core Parameters
+        - in: query
+          name: model
+          required: true
+          schema:
+            $ref: "#/components/schemas/TranscriptionModelIdentifier"
+          description: The identifier of the speech-to-text model to use for the transcription, in the format `provider.model`. See the `/speech-to-text-models` endpoint for available models.
+        - in: query
+          name: language
+          required: false
+          schema:
+            $ref: "#/components/schemas/TranscriptLanguageCode"
+          description: The language of the audio file in ISO 639-1 format (e.g., `en`, `es`, `fr`). Specify `auto` for automatic language detection (if supported by the model). Defaults to `en` if not provided. Providing the correct language improves accuracy and latency.
+        - in: query
+          name: output_format
+          required: false
+          schema:
+            $ref: "#/components/schemas/TranscriptOutputFormat"
+          description: The desired format for the transcription output. Can be plain text, JSON objects (simple or detailed), or subtitle formats (SRT, VTT). Defaults to `text`.
+        - in: query
+          name: ruleset_id
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: The unique identifier (UUID) of a pre-defined replacement ruleset to apply to the final transcription text. Create rulesets using the `/replacement-rulesets` endpoint.
+
+        # Provider-specific parameters
+        - in: query
+          name: punctuation
+          description: Enable automatic punctuation (commas, periods, question marks) in the transcription. Support varies by model/provider (e.g., Deepgram, AssemblyAI). Defaults to `true`.
+          required: false
+          schema:
+            type: boolean
+            default: true
+        - in: query
+          name: diarization
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: Enable speaker diarization to identify and label different speakers in the audio. Support and quality vary by model/provider. Defaults to `false`. When enabled, the `speaker` field may be populated in the response segments.
+        - in: query
+          name: initial_prompt
+          description: An optional text prompt to provide context, guide the model's style (e.g., spelling of specific names), or improve accuracy for subsequent audio segments. Support varies by model (e.g., OpenAI models).
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: temperature
+          description: Controls the randomness of the output for certain models (e.g., OpenAI). A value between 0 and 1. Lower values (e.g., 0.2) make the output more deterministic, while higher values (e.g., 0.8) make it more random. Defaults vary by model.
+          required: false
+          schema:
+            type: number
+            minimum: 0
+            maximum: 1
+        - in: query
+          name: speakers_expected
+          description: Provides a hint to the diarization process about the number of expected speakers. May improve accuracy for some providers (e.g., RevAI, Deepgram).
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10 # Maximum may vary by provider
+        - in: query
+          name: custom_vocabulary
+          description: Provide a list of specific words or phrases (e.g., proper nouns, jargon) to increase their recognition likelihood. Support varies by provider (e.g., Deepgram, AssemblyAI).
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            example: ["Speechall", "Actondon"]
+      requestBody:
+        required: true
+        description: The audio file to transcribe. Send the raw audio data as the request body. Supported formats typically include WAV, MP3, FLAC, Ogg, M4A, etc., depending on the chosen model/provider. Check provider documentation for specific limits on file size and duration.
+        content:
+          # Use a wildcard or list specific common formats
+          audio/*:
+            schema:
+              type: string
+              format: binary
+              description: Binary audio data. Common supported types include audio/wav, audio/mpeg (MP3), audio/flac, audio/ogg, audio/mp4 (M4A).
+          # Example explicit types:
+          # audio/wav:
+          #   schema:
+          #     type: string
+          #     format: binary
+          # audio/mpeg:
+          #   schema:
+          #     type: string
+          #     format: binary
+      responses:
+        "200":
+          $ref: "#/components/responses/DualFormatTranscriptionResponse"
+          description: Transcription completed successfully. The response format (`application/json` or `text/plain`) depends on the requested `output_format`.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/PaymentRequired"
+        "404":
+          $ref: "#/components/responses/NotFound" # Could be for an invalid ruleset_id
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+        "504":
+          $ref: "#/components/responses/GatewayTimeout"
+
+  /transcribe-remote:
+    post:
+      operationId: transcribeRemote
+      tags:
+        - Speech-to-Text
+      summary: Transcribe an audio file located at a remote URL.
+      description: |
+        This endpoint allows you to transcribe an audio file hosted at a publicly accessible URL.
+        Provide the URL and transcription options within the JSON request body.
+        Useful for transcribing files already stored online.
+      requestBody:
+        required: true
+        description: JSON object containing the URL of the audio file and the desired transcription options.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemoteTranscriptionConfiguration"
+            example:
+              file_url: "https://example.com/path/to/audio.mp3"
+              model: "openai.whisper-1"
+              language: "en"
+              output_format: "json"
+              diarization: true
+      responses:
+        "200":
+          $ref: "#/components/responses/DualFormatTranscriptionResponse"
+          description: Transcription completed successfully. The response format (`application/json` or `text/plain`) depends on the requested `output_format` in the request body.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/PaymentRequired"
+        "404":
+          $ref: "#/components/responses/NotFound" # Could be if the remote URL is invalid/inaccessible
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+        "504":
+          $ref: "#/components/responses/GatewayTimeout"
+
+  /openai-compatible/audio/transcriptions:
+    post:
+      operationId: openaiCompatibleCreateTranscription
+      x-internal: true
+      x-fern-ignore: true
+      tags:
+        - OpenAI-Compatible Speech-to-Text
+      summary: Transcribes audio into the input language, using OpenAI-compatible request format.
+      description: |
+        Mimics the OpenAI `/audio/transcriptions` endpoint. Accepts audio file uploads via `multipart/form-data`.
+        Allows specifying model, language, prompt, response format, temperature, and timestamp granularity similar to OpenAI.
+        Note: The `model` parameter should use Speechall's `provider.model` format.
+      requestBody:
+        required: true
+        description: Audio file and transcription options sent as `multipart/form-data`.
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/OpenAI_CreateTranscriptionRequest"
+            encoding:
+              file:
+                contentType: audio/*
+      responses:
+        "200":
+          description: |
+            Transcription successful. The response body format depends on the `response_format` parameter specified in the request:
+            - `json`: Returns `OpenAI_CreateTranscriptionResponseJson`.
+            - `verbose_json`: Returns `OpenAI_CreateTranscriptionResponseVerboseJson` with detailed segments and optional word timestamps.
+            - `text`, `srt`, `vtt`: Returns the transcription as plain text in the specified format.
+          content:
+            application/json:
+              schema:
+                oneOf: # Based on response_format = json or verbose_json
+                  - $ref: "#/components/schemas/OpenAI_CreateTranscriptionResponseVerboseJson"
+                  - $ref: "#/components/schemas/OpenAI_CreateTranscriptionResponseJson"
+            # Plain text responses for text, srt, vtt
+            text/plain:
+              schema:
+                type: string
+                example: "This is the transcribed text."
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/PaymentRequired"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+        "504":
+          $ref: "#/components/responses/GatewayTimeout"
+  /openai-compatible/audio/translations:
+    post:
+      operationId: openaiCompatibleCreateTranslation
+      x-internal: true
+      x-fern-ignore: true
+      tags:
+        - OpenAI-Compatible Speech-to-Text
+      summary: Translates audio into English, using OpenAI-compatible request format.
+      description: |
+        Mimics the OpenAI `/audio/translations` endpoint. Accepts audio file uploads via `multipart/form-data` and translates the speech into English text.
+        Allows specifying model, prompt, response format, and temperature similar to OpenAI.
+        Note: The `model` parameter should use Speechall's `provider.model` format (ensure the selected model supports translation).
+      requestBody:
+        required: true
+        description: Audio file and translation options sent as `multipart/form-data`. The audio will be translated into English.
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/OpenAI_CreateTranslationRequest"
+            # Example pseudo-request:
+            # curl ... -F file=@/path/to/audio_in_spanish.mp3 -F model="openai.whisper-1" -F response_format="json"
+      responses:
+        "200":
+          description: |
+            Translation successful. The output is always English text. The response body format depends on the `response_format` parameter:
+            - `json`: Returns `OpenAI_CreateTranslationResponseJson`.
+            - `verbose_json`: Returns `OpenAI_CreateTranslationResponseVerboseJson` with detailed segments.
+            - `text`, `srt`, `vtt`: Returns the translated English text as plain text in the specified format.
+          content:
+            application/json:
+              schema:
+                oneOf: # Based on response_format = json or verbose_json
+                  - $ref: "#/components/schemas/OpenAI_CreateTranslationResponseVerboseJson"
+                  - $ref: "#/components/schemas/OpenAI_CreateTranslationResponseJson"
+            # Plain text responses for text, srt, vtt
+            text/plain:
+              schema:
+                type: string
+                example: "This is the translated English text."
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/PaymentRequired"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+        "504":
+          $ref: "#/components/responses/GatewayTimeout"
+
+  /replacement-rulesets:
+    post:
+      operationId: createReplacementRuleset
+      tags:
+        - Replacement Rules
+      summary: Create a reusable set of text replacement rules.
+      description: |
+        Defines a named set of replacement rules (exact match, regex) that can be applied during transcription requests using its `ruleset_id`.
+        Rules within a set are applied sequentially to the transcription text.
+      requestBody:
+        required: true
+        description: JSON object containing the name for the ruleset and an array of replacement rule objects.
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - rules
+              properties:
+                name:
+                  type: string
+                  description: A user-defined name for this ruleset for easier identification.
+                  example: "Redact PII"
+                rules:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ReplacementRule'
+                  description: An ordered array of replacement rules. Rules are applied in the order they appear in this list. See the `ReplacementRule` schema for different rule types (exact, regex, regex_group).
+                  minItems: 1
+            example:
+              name: "Acme Corp Corrections"
+              rules:
+                - kind: "exact"
+                  search: "speechal"
+                  replacement: "Speechall"
+                  caseSensitive: false
+                - kind: "regex"
+                  pattern: "\\b(\\d{3})-(\\d{2})-(\\d{4})\\b" # Example SSN pattern
+                  replacement: "[REDACTED SSN]"
+                  flags: ["i"] # Case-insensitive flag example
+      responses:
+        "201":
+          description: Ruleset created successfully. The response body contains the unique ID assigned to the new ruleset.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: The unique identifier (UUID) generated for this ruleset. Use this ID in the `ruleset_id` parameter of transcription requests.
+                    example: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/PaymentRequired"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+        "504":
+          $ref: "#/components/responses/GatewayTimeout"
+
+  /speech-to-text-models:
+    get:
+      operationId: listSpeechToTextModels
+      tags:
+        - Speech-to-Text
+      summary: Retrieve a list of all available speech-to-text models.
+      description: |
+        Returns a detailed list of all STT models accessible through the Speechall API.
+        Each model entry includes its identifier (`provider.model`), display name, description,
+        supported features (languages, formats, punctuation, diarization), and performance characteristics.
+        Use this endpoint to discover available models and their capabilities before making transcription requests.
+      responses:
+        "200":
+          description: A list of available speech-to-text models and their properties.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SpeechToTextModel"
+              example: # Example of one model in the array
+                - provider: "openai"
+                  model: "openai.whisper-1"
+                  display_name: "OpenAI Whisper v2"
+                  description: "OpenAI's large Whisper model (version 2)."
+                  supported_languages: ["en", "es", "fr", "de", "it", "..."] # Truncated for brevity
+                  supported_formats: ["text", "json", "json_text", "srt", "vtt"]
+                  punctuation: true
+                  diarization: false # Whisper doesn't natively support diarization
+                  streamable: false # Example value
+                  real_time_factor: 5.0 # Example value
+                  max_duration: 7200 # Example value (2 hours)
+                  max_file_size: 26214400 # Example value (25MB)
+                # ... other models
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/PaymentRequired"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+        "504":
+          $ref: "#/components/responses/GatewayTimeout"
+
+components:
+  schemas:
+    TranscriptionProvider:
+      type: string
+      description: The identifier for the underlying Speech-to-Text service provider (e.g., 'openai', 'deepgram').
+      enum:
+        - amazon
+        - assemblyai
+        - azure
+        - cloudflare
+        - deepgram
+        - elevenlabs
+        - falai
+        - fireworksai
+        - gemini
+        - gladia
+        - google
+        - groq
+        - ibm
+        - mistral
+        - openai
+        - revai
+        - speechmatics
+    TranscriptionModelIdentifier:
+      type: string
+      description: Unique identifier for a specific Speech-to-Text model, composed as `provider.model_name`. Used to select the engine for transcription.
+      example: "openai.whisper-1"
+      enum:
+        - amazon.transcribe
+        - assemblyai.best
+        - assemblyai.nano
+        - assemblyai.slam-1
+        - assemblyai.universal
+        - azure.standard
+        - cloudflare.whisper
+        - cloudflare.whisper-large-v3-turbo
+        - cloudflare.whisper-tiny-en
+        - deepgram.base
+        - deepgram.base-conversationalai
+        - deepgram.base-finance
+        - deepgram.base-general
+        - deepgram.base-meeting
+        - deepgram.base-phonecall
+        - deepgram.base-video
+        - deepgram.base-voicemail
+        - deepgram.enhanced
+        - deepgram.enhanced-finance
+        - deepgram.enhanced-general
+        - deepgram.enhanced-meeting
+        - deepgram.enhanced-phonecall
+        - deepgram.nova
+        - deepgram.nova-general
+        - deepgram.nova-phonecall
+        - deepgram.nova-2
+        - deepgram.nova-2-atc
+        - deepgram.nova-2-automotive
+        - deepgram.nova-2-conversationalai
+        - deepgram.nova-2-drivethru
+        - deepgram.nova-2-finance
+        - deepgram.nova-2-general
+        - deepgram.nova-2-medical
+        - deepgram.nova-2-meeting
+        - deepgram.nova-2-phonecall
+        - deepgram.nova-2-video
+        - deepgram.nova-2-voicemail
+        - deepgram.nova-3
+        - deepgram.nova-3-general
+        - deepgram.nova-3-medical
+        - deepgram.whisper
+        - deepgram.whisper-base
+        - deepgram.whisper-large
+        - deepgram.whisper-medium
+        - deepgram.whisper-small
+        - deepgram.whisper-tiny
+        - elevenlabs.scribe-v1
+        - falai.elevenlabs-speech-to-text
+        - falai.speech-to-text
+        - falai.whisper
+        - falai.wizper
+        - fireworksai.whisper-v3
+        - fireworksai.whisper-v3-turbo
+        - gladia.standard
+        - google.enhanced
+        - google.standard
+        - gemini.gemini-2.5-pro
+        - gemini.gemini-2.5-flash
+        - gemini.gemini-2.5-flash-lite
+        - gemini.gemini-2.0-flash
+        - gemini.gemini-2.0-flash-lite
+        - groq.whisper-large-v3
+        - groq.whisper-large-v3-turbo
+        - ibm.standard
+        - mistral.voxtral-mini
+        - openai.whisper-1
+        - openai.gpt-4o-transcribe
+        - openai.gpt-4o-mini-transcribe
+        - openai.gpt-4o-transcribe-diarize
+        # - revai.low_cost
+        - revai.machine
+        - revai.fusion
+        - speechmatics.enhanced
+        - speechmatics.standard
+
+    BaseTranscriptionConfiguration:
+      type: object
+      description: Common configuration options for transcription, applicable to both direct uploads and remote URLs.
+      properties:
+        model:
+          $ref: "#/components/schemas/TranscriptionModelIdentifier"
+          description: The identifier of the speech-to-text model to use.
+        language:
+          $ref: "#/components/schemas/TranscriptLanguageCode"
+          description: The language code (ISO 639-1) of the audio. Defaults to `en`. Use `auto` for automatic detection if supported.
+        output_format:
+          $ref: "#/components/schemas/TranscriptOutputFormat"
+          description: The desired format for the transcription output. Defaults to `text`.
+        ruleset_id:
+          type: string
+          format: uuid
+          description: The unique identifier (UUID) of a pre-defined replacement ruleset to apply to the final transcription text.
+        punctuation:
+          type: boolean
+          default: true
+          description: Whether to add punctuation. Support varies by model (e.g., Deepgram, AssemblyAI). Defaults to `true`.
+        diarization:
+          type: boolean
+          default: false
+          description: Enable speaker diarization. Defaults to `false`.
+        initial_prompt:
+          type: string
+          description: Optional text prompt to guide the transcription model. Support varies (e.g., OpenAI).
+        temperature:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Controls output randomness for supported models (e.g., OpenAI). Value between 0 and 1.
+        speakers_expected:
+          type: integer
+          minimum: 1
+          maximum: 10
+          description: Hint for the number of expected speakers for diarization (e.g., RevAI, Deepgram).
+        custom_vocabulary:
+          type: array
+          items:
+            type: string
+          description: List of custom words/phrases to improve recognition (e.g., Deepgram, AssemblyAI).
+          example: ["Speechall", "Actondon", "HIPAA"]
+      required:
+        - model
+
+    RemoteTranscriptionConfiguration:
+      type: object
+      description: Configuration options for transcribing audio specified by a remote URL via the `/transcribe-remote` endpoint.
+      allOf:
+        - $ref: "#/components/schemas/BaseTranscriptionConfiguration"
+        - type: object
+          required:
+            - file_url
+          properties:
+            file_url:
+              type: string
+              format: uri
+              description: The publicly accessible URL of the audio file to transcribe. The API server must be able to fetch the audio from this URL.
+              example: "https://files.speechall.com/samples/sample.wav"
+            replacement_ruleset: # This allows inline rules, complementing ruleset_id from BaseTranscriptionConfiguration
+              type: array
+              items:
+                $ref: '#/components/schemas/ReplacementRule'
+              description: An array of replacement rules to be applied directly to this transcription request, in order. This allows defining rules inline instead of (or in addition to) using a pre-saved `ruleset_id`.
+
+    TranscriptLanguageCode:
+      type: string
+      description: |
+        The language code of the audio file, typically in ISO 639-1 format.
+        Specifying the correct language improves transcription accuracy and speed.
+        The special value `auto` can be used to request automatic language detection, if supported by the selected model.
+        If omitted, the default language is English (`en`).
+      enum:
+        - auto
+        - en
+        - en_au
+        - en_uk
+        - en_us
+        - af
+        - am
+        - ar
+        - as
+        - az
+        - ba
+        - be
+        - bg
+        - bn
+        - bo
+        - br
+        - bs
+        - ca
+        - cs
+        - cy
+        - da
+        - de
+        - el
+        - es
+        - et
+        - eu
+        - fa
+        - fi
+        - fo
+        - fr
+        - gl
+        - gu
+        - ha
+        - haw
+        - he
+        - hi
+        - hr
+        - ht
+        - hu
+        - hy
+        - id
+        - is
+        - it
+        - ja
+        - jw
+        - ka
+        - kk
+        - km
+        - kn
+        - ko
+        - la
+        - lb
+        - ln
+        - lo
+        - lt
+        - lv
+        - mg
+        - mi
+        - mk
+        - ml
+        - mn
+        - mr
+        - ms
+        - mt
+        - my
+        - ne
+        - nl
+        - nn
+        - no
+        - oc
+        - pa
+        - pl
+        - ps
+        - pt
+        - ro
+        - ru
+        - sa
+        - sd
+        - si
+        - sk
+        - sl
+        - sn
+        - so
+        - sq
+        - sr
+        - su
+        - sv
+        - sw
+        - ta
+        - te
+        - tg
+        - th
+        - tk
+        - tl
+        - tr
+        - tt
+        - uk
+        - ur
+        - uz
+        - vi
+        - yi
+        - yo
+        - zh
+      default: en
+    TranscriptOutputFormat:
+      type: string
+      description: |
+        Specifies the desired format of the transcription output.
+        - `text`: Plain text containing the full transcription.
+        - `json_text`: A simple JSON object containing the transcription ID and the full text (`TranscriptionOnlyText` schema).
+        - `json`: A detailed JSON object including segments, timestamps (based on `timestamp_granularity`), language, and potentially speaker labels and provider metadata (`TranscriptionDetailed` schema).
+        - `srt`: SubRip subtitle format (returned as plain text).
+        - `vtt`: WebVTT subtitle format (returned as plain text).
+      enum:
+        - text
+        - json_text
+        - json
+        - srt
+        - vtt
+      default: text
+    TranscriptionOnlyText:
+      type: object
+      description: A simplified JSON response format containing only the transcription ID and the full transcribed text. Returned when `output_format` is `json_text`.
+      required:
+        - id
+        - text
+      properties:
+        id:
+          type: string
+          description: A unique identifier for the transcription job/request.
+          example: "txn_123abc456def"
+        text:
+          type: string
+          description: The full transcribed text as a single string.
+          example: "Hello world, this is a test transcription."
+    TranscriptionDetailed:
+      type: object
+      description: A detailed JSON response format containing the full text, detected language, duration, individual timed segments, and potentially speaker labels and provider-specific metadata. Returned when `output_format` is `json`.
+      required:
+        - id
+        - text
+      properties:
+        # Core Properties
+        id:
+          type: string
+          description: A unique identifier for the transcription job/request.
+          example: "txn_123abc456def"
+        text:
+          type: string
+          description: The full transcribed text as a single string.
+          example: "Hello world. This is a test transcription with two speakers."
+        language:
+          type: string
+          description: The detected or specified language of the audio (ISO 639-1 code).
+          example: "en"
+        segments:
+          type: array
+          description: An array of transcribed segments, providing time-coded chunks of the transcription. May include speaker labels if diarization was enabled.
+          items:
+            $ref: '#/components/schemas/TranscriptionSegment'
+        words:
+          type: array
+          description: An array of transcribed words, providing time-coded chunks of the transcription. May include speaker labels if diarization was enabled.
+          items:
+            $ref: '#/components/schemas/TranscriptionWord'
+    TranscriptionResponse:
+      description: Represents the JSON structure returned when a JSON-based `output_format` (`json` or `json_text`) is requested. It can be either a detailed structure or a simple text-only structure.
+      oneOf:
+        - $ref: "#/components/schemas/TranscriptionDetailed"
+        - $ref: "#/components/schemas/TranscriptionOnlyText"
+
+    TranscriptionSegment:
+      type: object
+      description: Represents a time-coded segment of the transcription, typically corresponding to a phrase, sentence, or speaker turn.
+      properties:
+        start:
+          type: number
+          format: double # Allow for fractional seconds
+          description: The start time of the segment in seconds from the beginning of the audio.
+          example: 0.5
+        end:
+          type: number
+          format: double # Allow for fractional seconds
+          description: The end time of the segment in seconds from the beginning of the audio.
+          example: 4.25
+        text:
+          type: string
+          description: The transcribed text content of this segment.
+          example: "Hello world."
+        speaker:
+          type: string # Could also be integer depending on provider convention
+          description: An identifier for the speaker of this segment, present if diarization was enabled and successful.
+          example: "Speaker 0"
+        confidence:
+          type: number
+          format: double
+          description: The model's confidence score for the transcription of this segment, typically between 0 and 1 (if provided by the model).
+          example: 0.95
+    TranscriptionWord:
+      type: object
+      description: Represents a word in the transcription, providing time-coded chunks of the transcription.
+      properties:
+        start:
+          type: number
+          format: double # Allow for fractional seconds
+          description: The start time of the word in seconds from the beginning of the audio.
+          example: 0.5
+        end:
+          type: number
+          format: double # Allow for fractional seconds
+          description: The end time of the word in seconds from the beginning of the audio.
+          example: 4.25
+        word:
+          type: string
+          description: The transcribed word.
+          example: "Hello"
+        speaker:
+          type: string
+          description: An identifier for the speaker of this word, present if diarization was enabled and successful.
+          example: "Speaker 0"
+        confidence:
+          type: number
+          format: double
+          description: The model's confidence score for the transcription of this word, typically between 0 and 1 (if provided by the model).
+          example: 0.95
+      required:
+        - word
+        - start
+        - end
+
+    SpeechToTextModel:
+      type: object
+      description: Describes an available speech-to-text model, its provider, capabilities, and characteristics.
+      required:
+        - id
+        - display_name
+        - provider
+        - is_available
+        - supports_srt
+        - supports_vtt
+      properties:
+        id:
+          $ref: "#/components/schemas/TranscriptionModelIdentifier"
+          description: The unique identifier for this model (`provider.model_name`).
+        display_name:
+          type: string
+          description: A user-friendly name for the model.
+          example: "Deepgram Nova 2 - General"
+        provider:
+          $ref: "#/components/schemas/TranscriptionProvider"
+          description: The provider of this model.
+        description:
+          type: string
+          nullable: true
+          description: A brief description of the model, its intended use case, or version notes.
+          example: "Deepgram's latest general-purpose transcription model, optimized for various audio types."
+        cost_per_second_usd:
+          type: number
+          format: double
+          nullable: true
+          description: The cost per second of audio processed in USD.
+          example: 0.0043
+        is_available:
+          type: boolean
+          description: Indicates whether the model is currently available for use.
+          default: true
+          example: true
+        supported_languages:
+          type: array
+          nullable: true
+          description: >
+            A list of language codes (preferably BCP 47, e.g., "en-US", "en-GB", "es-ES")
+            supported by this model. May include `auto` if automatic language detection is supported
+            across multiple languages within a single audio file.
+          items:
+            type: string
+          example: ["en-US", "en-GB", "es-ES", "fr-FR", "auto"]
+        punctuation:
+          type: boolean
+          nullable: true
+          description: Indicates whether the model generally supports automatic punctuation insertion.
+          example: true
+        diarization:
+          type: boolean
+          nullable: true
+          description: Indicates whether the model generally supports speaker diarization (identifying different speakers).
+          example: true
+        streamable:
+          type: boolean
+          nullable: true
+          description: Indicates whether the model can be used for real-time streaming transcription via a WebSocket connection (if offered by Speechall).
+          example: true
+        real_time_factor:
+          type: number
+          format: double
+          nullable: true
+          description: >
+            An approximate measure of processing speed for batch processing. Defined as (audio duration) / (processing time).
+            A higher value means faster processing (e.g., RTF=2 means it processes 1 second of audio in 0.5 seconds).
+            May not be available for all models or streaming scenarios.
+          example: 10.0
+        max_duration_seconds:
+          type: number
+          format: double
+          nullable: true
+          description: The maximum duration of a single audio file (in seconds) that the model can reliably process in one request. May vary by provider or plan.
+          example: 14400
+        max_file_size_bytes:
+          type: integer
+          format: int64
+          nullable: true
+          description: The maximum size of a single audio file (in bytes) that can be uploaded for processing by this model. May vary by provider or plan.
+          example: 104857600
+        version:
+          type: string
+          nullable: true
+          description: The specific version identifier for the model.
+          example: "2.0"
+        release_date:
+          type: string
+          format: date
+          nullable: true
+          description: The date when this specific version of the model was released or last updated.
+          example: "2023-10-26"
+        model_type:
+          type: string
+          nullable: true
+          description: The primary type or training domain of the model. Helps identify suitability for different audio types.
+          enum:
+            - general
+            - phone_call
+            - video
+            - command_and_search
+            - medical
+            - legal
+            - voicemail
+            - meeting
+          example: "general"
+        accuracy_tier:
+          type: string
+          nullable: true
+          description: A general indication of the model's expected accuracy level relative to other models. Not a guaranteed metric.
+          enum:
+            - basic
+            - standard
+            - enhanced
+            - premium
+          example: "enhanced"
+        supported_audio_encodings:
+          type: array
+          nullable: true
+          description: A list of audio encodings that this model supports or is optimized for (e.g., LINEAR16, FLAC, MP3, Opus).
+          items:
+            type: string
+          example: ["LINEAR16", "FLAC", "MP3", "Opus"]
+        supported_sample_rates:
+          type: array
+          nullable: true
+          description: A list of audio sample rates (in Hz) that this model supports or is optimized for.
+          items:
+            type: integer
+          example: [8000, 16000, 44100]
+        speaker_labels:
+          type: boolean
+          nullable: true
+          description: Indicates whether the model can provide speaker labels for the transcription.
+          example: true
+        word_timestamps:
+          type: boolean
+          nullable: true
+          description: Indicates whether the model can provide timestamps for individual words.
+          example: true
+        confidence_scores:
+          type: boolean
+          nullable: true
+          description: Indicates whether the model provides confidence scores for the transcription or individual words.
+          example: true
+        language_detection:
+          type: boolean
+          nullable: true
+          description: Indicates whether the model supports automatic language detection for input audio.
+          example: true
+        custom_vocabulary_support:
+          type: boolean
+          nullable: true
+          description: Indicates if the model can leverage a custom vocabulary or language model adaptation.
+          example: false
+        profanity_filtering:
+          type: boolean
+          nullable: true
+          description: Indicates if the model supports filtering or masking of profanity.
+          example: true
+        noise_reduction:
+          type: boolean
+          nullable: true
+          description: Indicates if the model supports noise reduction.
+          example: true
+        supports_srt:
+          type: boolean
+          description: Indicates whether the model supports SRT subtitle format output.
+          default: false
+          example: true
+        supports_vtt:
+          type: boolean
+          description: Indicates whether the model supports VTT subtitle format output.
+          default: false
+          example: true
+        voice_activity_detection:
+          type: boolean
+          nullable: true
+          description: Indicates whether the model supports voice activity detection (VAD) to identify speech segments.
+          example: true
+
+    OpenAI_CreateTranscriptionRequest:
+      x-internal: true
+      x-fern-ignore: true
+      type: object
+      description: Request schema for the OpenAI-compatible transcription endpoint. Uses `multipart/form-data`.
+      additionalProperties: false
+      properties:
+        file:
+          description: >
+            The audio file object (not file name) to transcribe, in one of these
+            formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+          type: string
+          format: binary
+        model:
+          $ref: "#/components/schemas/TranscriptionModelIdentifier"
+          description: The Speechall model identifier (`provider.model`) to use for transcription.
+        language:
+          description: >
+            The language of the input audio. Supplying the input language in
+            [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)
+            format will improve accuracy and latency.
+          type: string
+        prompt:
+          description: >
+            An optional text to guide the model's style or continue a previous
+            audio segment. The [prompt](/docs/guides/speech-to-text/prompting)
+            should match the audio language.
+          type: string
+        response_format:
+          $ref: "#/components/schemas/OpenAI_AudioResponseFormat"
+          description: The desired format for the transcription output. Defaults to `json`.
+        temperature:
+          description: >
+            The sampling temperature, between 0 and 1. Higher values like 0.8
+            will make the output more random, while lower values like 0.2 will
+            make it more focused and deterministic. If set to 0, the model will
+            use [log probability](https://en.wikipedia.org/wiki/Log_probability)
+            to automatically increase the temperature until certain thresholds
+            are hit.
+          type: number
+          default: 0
+        timestamp_granularities[]:
+          description: >
+            The timestamp granularities to populate for this transcription.
+            `response_format` must be set `verbose_json` to use timestamp
+            granularities. Either or both of these options are supported:
+            `word`, or `segment`. Note: There is no additional latency for
+            segment timestamps, but generating word timestamps incurs additional
+            latency.
+          type: array
+          items:
+            type: string
+            enum:
+              - word
+              - segment
+          default:
+            - segment
+      required:
+        - file
+        - model
+    OpenAI_CreateTranscriptionResponseJson:
+      x-internal: true
+      x-fern-ignore: true
+      type: object
+      description:
+        Represents a transcription response returned by model, based on the
+        provided input.
+      properties:
+        text:
+          type: string
+          description: The transcribed text.
+      required:
+        - text
+    OpenAI_CreateTranscriptionResponseVerboseJson:
+      x-internal: true
+      x-fern-ignore: true
+      type: object
+      description:
+        Represents a verbose json transcription response returned by model,
+        based on the provided input.
+      properties:
+        language:
+          type: string
+          description: The language of the input audio.
+        duration:
+          type: number
+          description: The duration of the input audio.
+        text:
+          type: string
+          description: The transcribed text.
+        words:
+          type: array
+          description: Extracted words and their corresponding timestamps.
+          items:
+            $ref: "#/components/schemas/OpenAI_TranscriptionWord"
+        segments:
+          type: array
+          description: Segments of the transcribed text and their corresponding details.
+          items:
+            $ref: "#/components/schemas/OpenAI_TranscriptionSegment"
+      required:
+        - language
+        - duration
+        - text
+        # Segments/words presence depends on timestamp_granularities request param
+    OpenAI_CreateTranslationRequest:
+      x-internal: true
+      x-fern-ignore: true
+      type: object
+      description: Request schema for the OpenAI-compatible translation endpoint. Uses `multipart/form-data`. Translates audio into English.
+      additionalProperties: false
+      properties:
+        file:
+          description: >
+            The audio file object (not file name) translate, in one of these
+            formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+          type: string
+          format: binary
+        model:
+          description: >
+            ID of the model to use. It follows the naming convention provider/model-name
+          example: openai/whisper-1
+          anyOf:
+            - type: string
+              description: A valid Speechall model identifier capable of translation.
+            - type: string
+              enum: # Explicitly listing common translation models
+                - openai.whisper-1
+                - deepgram.whisper-large # Example, check actual capability
+        prompt:
+          description: >
+            An optional text to guide the model's style or continue a previous
+            audio segment. The [prompt](/docs/guides/speech-to-text/prompting)
+            should be in English.
+          type: string
+        response_format:
+          $ref: "#/components/schemas/OpenAI_AudioResponseFormat"
+          description: The desired format for the translation output. Defaults to `json`.
+        temperature:
+          description: >
+            The sampling temperature, between 0 and 1. Higher values like 0.8
+            will make the output more random, while lower values like 0.2 will
+            make it more focused and deterministic. If set to 0, the model will
+            use [log probability](https://en.wikipedia.org/wiki/Log_probability)
+            to automatically increase the temperature until certain thresholds
+            are hit.
+          type: number
+          default: 0
+      required:
+        - file
+        - model
+    OpenAI_CreateTranslationResponseJson:
+      x-internal: true
+      x-fern-ignore: true
+      type: object
+      description: Standard JSON response for OpenAI-compatible translation requests when `response_format` is `json`. Contains the translated English text.
+      properties:
+        text:
+          type: string
+      required:
+        - text
+    OpenAI_CreateTranslationResponseVerboseJson:
+      x-internal: true
+      x-fern-ignore: true
+      type: object
+      properties:
+        language:
+          type: string
+          description: The language of the output translation (always `english`).
+        duration:
+          type: string
+          description: The duration of the input audio.
+        text:
+          type: string
+          description: The translated text.
+        segments:
+          type: array
+          description: Segments of the translated text and their corresponding details.
+          items:
+            $ref: "#/components/schemas/OpenAI_TranscriptionSegment"
+      required:
+        - language
+        - duration
+        - text
+    OpenAI_AudioResponseFormat:
+      x-internal: true
+      x-fern-ignore: true
+      description: >
+        The format of the output, in one of these options: `json`, `text`,
+        `srt`, `verbose_json`, or `vtt`.
+      type: string
+      enum:
+        - json
+        - text
+        - srt
+        - verbose_json
+        - vtt
+      default: json
+    OpenAI_TranscriptionSegment:
+      x-internal: true
+      x-fern-ignore: true
+      type: object
+      description: Represents a segment of transcribed or translated text, based on OpenAI's verbose JSON structure.
+      properties:
+        id:
+          type: integer
+          description: Unique identifier of the segment.
+        seek:
+          type: integer
+          description: Seek offset of the segment.
+        start:
+          type: number
+          format: float
+          description: Start time of the segment in seconds.
+        end:
+          type: number
+          format: float
+          description: End time of the segment in seconds.
+        text:
+          type: string
+          description: Text content of the segment.
+        tokens:
+          type: array
+          items:
+            type: integer
+          description: Array of token IDs for the text content.
+        temperature:
+          type: number
+          format: float
+          description: Temperature parameter used for generating the segment.
+        avg_logprob:
+          type: number
+          format: float
+          description:
+            Average logprob of the segment. If the value is lower than -1,
+            consider the logprobs failed.
+        compression_ratio:
+          type: number
+          format: float
+          description:
+            Compression ratio of the segment. If the value is greater than 2.4,
+            consider the compression failed.
+        no_speech_prob:
+          type: number
+          format: float
+          description:
+            Probability of no speech in the segment. If the value is higher
+            than 1.0 and the `avg_logprob` is below -1, consider this segment
+            silent.
+      required:
+        - id
+        - seek
+        - start
+        - end
+        - text
+        - tokens
+        - temperature
+        - avg_logprob
+        - compression_ratio
+        - no_speech_prob
+    OpenAI_TranscriptionWord:
+      x-internal: true
+      x-fern-ignore: true
+      type: object
+      description: Represents a single word identified during transcription, including its start and end times. Included in `verbose_json` response when `word` granularity is requested.
+      properties:
+        word:
+          type: string
+          description: The text content of the word.
+        start:
+          type: number
+          format: float
+          description: Start time of the word in seconds.
+        end:
+          type: number
+          format: float
+          description: End time of the word in seconds.
+      required:
+        - word
+        - start
+        - end
+
+    ErrorResponse:
+      type: object
+      description: Standard structure for error responses. May include additional properties depending on the error type.
+      additionalProperties: true # Allows for additional fields like 'code', 'type' etc.
+      required: [message]
+      properties:
+        message:
+          description: A human-readable message describing the error.
+          type: string
+      example: { "message": "Invalid model identifier specified.", "code": "invalid_request_error" }
+
+# Replacement Rules Schemas Documentation
+    ExactRule:
+      type: object
+      description: Defines a replacement rule based on finding an exact string match.
+      required:
+        - kind
+        - search
+        - replacement
+      properties:
+        kind:
+          type: string
+          enum: [exact]
+          description: Discriminator field identifying the rule type as 'exact'.
+        search:
+          type: string
+          description: The exact text string to search for within the transcription.
+          example: "customer X"
+        replacement:
+          type: string
+          description: The text string to replace the found 'search' text with.
+          example: "[REDACTED CUSTOMER NAME]"
+        caseSensitive:
+          type: boolean
+          default: false
+          description: If true, the search will match only if the case is identical. If false (default), the search ignores case.
+
+    RegexRule:
+      type: object
+      description: Defines a replacement rule based on matching a regular expression pattern.
+      required:
+        - kind
+        - pattern
+        - replacement
+      properties:
+        kind:
+          type: string
+          enum: [regex]
+          description: Discriminator field identifying the rule type as 'regex'.
+        pattern:
+          type: string
+          format: regex # Hint for tooling, not strictly enforced by JSON schema validation
+          description: The regular expression pattern to search for. Uses standard regex syntax (implementation specific, often PCRE-like). Remember to escape special characters if needed (e.g., `\\.` for a literal dot).
+          example: "\\b\\d{4}\\b" # Match 4-digit numbers as whole words
+        replacement:
+          type: string
+          description: The replacement text. Can include backreferences to capture groups from the pattern, like `$1`, `$2`, etc. A literal `$` should be escaped (e.g., `$$`).
+          example: "[REDACTED YEAR]"
+        flags:
+          type: array
+          items:
+            type: string
+            enum: # Common regex flags
+              - i # Case-insensitive
+              - m # Multiline (^ and $ match start/end of lines)
+              - s # Dot matches all (including newline)
+              - x # Ignore whitespace in pattern
+              - u # Unicode support
+          description: An array of flags to modify the regex behavior (e.g., 'i' for case-insensitivity).
+          example: ["i", "m"]
+
+    RegexGroupRule:
+      type: object
+      description: Defines a replacement rule that uses regex capture groups to apply different replacements to different parts of the matched text.
+      required:
+        - kind
+        - pattern
+        - groupReplacements
+      properties:
+        kind:
+          type: string
+          enum: [regex_group]
+          description: Discriminator field identifying the rule type as 'regex_group'.
+        pattern:
+          type: string
+          format: regex
+          description: The regular expression pattern containing capture groups `(...)`. The entire pattern must match for replacements to occur.
+          example: "Order ID: (\\d+), Customer: (.+)"
+        groupReplacements:
+          type: object
+          description: An object where keys are capture group numbers (as strings, e.g., "1", "2") and values are the respective replacement strings for those groups. Groups not listed are kept as matched. The entire match is reconstructed using these replacements.
+          additionalProperties:
+            type: string
+          example:
+            "1": "[REDACTED ORDER ID]" # Replace group 1
+            # Group 2 (Customer Name) is implicitly kept as is because it's not listed
+        flags:
+          type: array
+          items:
+            type: string
+            enum: [i, m, s, x, u]
+          description: An array of flags to modify the regex behavior.
+          example: ["i"]
+
+    ReplacementRule:
+      description: Defines a single rule for finding and replacing text in a transcription. Use one of the specific rule types (`ExactRule`, `RegexRule`, `RegexGroupRule`). The `kind` property acts as a discriminator.
+      oneOf:
+        - $ref: '#/components/schemas/ExactRule'
+        - $ref: '#/components/schemas/RegexRule'
+        - $ref: '#/components/schemas/RegexGroupRule'
+      discriminator:
+        propertyName: kind
+        mapping:
+          exact: '#/components/schemas/ExactRule'
+          regex: '#/components/schemas/RegexRule'
+          regex_group: '#/components/schemas/RegexGroupRule'
+      example: # Example of a regex rule
+        kind: "regex"
+        pattern: "confidential project (\\w+)"
+        replacement: "confidential project [REDACTED]"
+        flags: ["i"]
+
+  securitySchemes:
+    bearerAuth: # Name used in the global 'security' section and operation overrides.
+      type: http
+      scheme: bearer
+      bearerFormat: API Key # Informative, clarifies the expected token type.
+      description: |
+        Authentication is required for all API requests. Provide your API key as a Bearer token in the `Authorization` header.
+        Example: `Authorization: Bearer YOUR_API_KEY`
+        Obtain your API key from the Speechall user dashboard.
+
+  responses:
+    DualFormatTranscriptionResponse:
+      description: |
+        Successful transcription response. The content type and structure depend on the `output_format` parameter specified in the request.
+        - `application/json`: Returned for `output_format=json` or `json_text`. See `TranscriptionResponse` schema (`TranscriptionDetailed` or `TranscriptionOnlyText`).
+        - `text/plain`: Returned for `output_format=text`.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/TranscriptionResponse"
+        text/plain:
+          schema:
+            type: string
+            description: The transcription output as plain text (used for `output_format=text`).
+            example: "This is the full transcription text."
+    BadRequest:
+      description: Bad Request - The request was malformed or contained invalid parameters (e.g., invalid language code, missing required field, unsupported option). The response body provides details.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example: { "message": "Invalid value for parameter 'language': 'xx'. Must be a valid ISO 639-1 code or 'auto'." }
+    Unauthorized:
+      description: Unauthorized - Authentication failed. The API key is missing, invalid, or expired.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            { "message": "Authentication required. No API key provided.", "code": "unauthenticated" }
+    PaymentRequired:
+      description: Payment Required - There is no credit left on your account.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example: { "message": "No credit left on your account. Please add credit to your account.", "code": "payment_required" }
+    NotFound:
+      description: Not Found - The requested resource could not be found. This could be an invalid API endpoint path, or a referenced resource ID (like `ruleset_id`) that doesn't exist. For `/transcribe-remote`, it could also mean the `file_url` was inaccessible.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example: { "message": "Replacement ruleset with ID '...' not found.", "code": "not_found" }
+    TooManyRequests:
+      description: Too Many Requests - The client has exceeded the rate limit for API requests. Check the `Retry-After` header for guidance on when to retry.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example: { "message": "Rate limit exceeded. Please try again later.", "code": "rate_limit_exceeded" }
+      headers:
+        Retry-After:
+          description: The recommended number of seconds to wait before making another request.
+          schema:
+            type: integer
+            example: 60
+    InternalServerError:
+      description: Internal Server Error - An unexpected error occurred on the server side while processing the request. Retrying the request later might succeed. If the problem persists, contact support.
+      content:
+        application/json: # Providing JSON error is preferred
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example: { "message": "An internal error occurred. Please try again or contact support.", "code": "internal_server_error" }
+        text/plain: # Fallback if JSON generation fails
+          schema:
+            type: string
+          example: "Internal Server Error"
+    ServiceUnavailable:
+      description: Service Unavailable - The server is temporarily unable to handle the request, possibly due to maintenance or overload. Try again later.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example: { "message": "The service is temporarily unavailable. Please try again later.", "code": "service_unavailable" }
+    GatewayTimeout:
+      description: Gateway Timeout - The server, while acting as a gateway or proxy, did not receive a timely response from an upstream server (e.g., the underlying STT provider). This might be a temporary issue with the provider.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example: { "message": "Upstream service timed out. Please try again later.", "code": "gateway_timeout" }
+
+# Apply Bearer token authentication globally to all operations defined in this document.
+# Operations can override this if they use different authentication methods.
+security:
+  - bearerAuth: [] # References the scheme defined in components.securitySchemes. The empty array signifies no specific scopes are required.
