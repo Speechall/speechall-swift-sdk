@@ -45,6 +45,7 @@ let package = Package(
                 .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
                 .product(name: "OpenAPIAsyncHTTPClient", package: "swift-openapi-async-http-client"),
                 .target(name: "SpeechallAPITypes"),
+                .product(name: "UsefulThings", package: "UsefulThings"),
             ]
         ),
         // Tests
