@@ -26,3 +26,6 @@ venv/
 *.swp
 *.tmp
 *~
+
+# Audio files
+*.wav
