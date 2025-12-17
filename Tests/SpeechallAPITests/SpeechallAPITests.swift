@@ -17,14 +17,64 @@ import struct Foundation.Date
 #endif
 
 struct SpeechallAPITests {
-    // let client = {
-    //         let envFileUrl = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent(".env")
-    //         return try! createClient(apiKey: getEnvironmentVariable("API_KEY", from: envFileUrl)!)
-    // }()
+     let client = {
+         let envFileUrl = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent(".env")
+         guard let apiKey = UsefulThings.getEnvironmentVariable("API_KEY", from: envFileUrl) else {
+             preconditionFailure()
+         }
+         return SpeechallAPI.Client(
+            serverURL: URL(string: "https://api.speechall.com/v1")!,
+            transport: AsyncHTTPClientTransport(),
+            middlewares: [AuthenticationMiddleware(apiKey: apiKey)]
+         )
+     }()
 
     @Test func example() async throws {
-        // let response = try await client.<#method#>(
-        //
-        // )
+        let audioData = try Data(contentsOf: URL(filePath: "/Users/atacan/Developer/Repositories/Speechall-SDK/speechall-typescript-sdk/examples/sample-audio.wav"))
+        let response = try await client.transcribe(
+            query: .init(model: .cloudflare_period_whisper),
+            body: .audio__ast_(
+                HTTPBody(
+                    audioData
+                )
+            )
+         )
+        switch response {
+        case .ok(let dualFormatTranscriptionResponse):
+            switch dualFormatTranscriptionResponse.body {
+            case .json(let transcriptionResponse):
+                switch transcriptionResponse {
+                case .TranscriptionDetailed(let transcriptionDetailed):
+                    print(transcriptionDetailed.text)
+                case .TranscriptionOnlyText(let transcriptionOnlyText):
+                    print(transcriptionOnlyText.text)
+                }
+            case .plainText(let httpBody):
+                let responseString = String(buffer: try await httpBody.collect(upTo: 1024 * 1024, using: .init()))
+            }
+        case .badRequest(let badRequest):
+            print(try badRequest.body.json.message)
+        case .unauthorized(let unauthorized):
+            print(try unauthorized.body.json.message)
+        case .code402(let paymentRequired):
+            print(try paymentRequired.body.json.message)
+        case .notFound(let notFound):
+            print(try notFound.body.json.message)
+        case .tooManyRequests(let tooManyRequests):
+            print(try tooManyRequests.body.json.message)
+        case .internalServerError(let internalServerError):
+            print(try internalServerError.body.json.message)
+        case .serviceUnavailable(let serviceUnavailable):
+            print(try serviceUnavailable.body.json.message)
+        case .gatewayTimeout(let gatewayTimeout):
+            print(try gatewayTimeout.body.json.message)
+        case .undocumented(let statusCode, let undocumentedPayload):
+            // undocumentedPayload.body is HTTPBody
+            if let buffer = try await undocumentedPayload.body?.collect(upTo: 1024 * 1024, using: .init()){
+                let payloadString = String(buffer: buffer)
+                print(payloadString)
+            }
+            
+        }
     }
 }
