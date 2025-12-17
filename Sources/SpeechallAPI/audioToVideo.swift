@@ -2,6 +2,13 @@
 import Foundation
 import AVFoundation
 
+func isVideoFile(_ url: URL) -> Bool {
+    // is there better way?
+    // what if there is no extension?
+    let pathExtension = url.pathExtension.lowercased()
+    return ["mp4", "mov", "m4v", "avi"].contains(pathExtension)
+}
+
 /// Return audio file url in temporary folder
 func extractAudioFileFromVideo(_ url: URL) async throws -> URL {
 

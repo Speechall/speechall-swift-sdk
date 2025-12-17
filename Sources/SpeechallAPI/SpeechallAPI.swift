@@ -38,6 +38,8 @@ public struct SpeechallClient: Sendable {
 extension SpeechallClient {
     /// Returns plain text transcription
     public func transcribe(fileAt fileUrl: URL, withModel modelId: SpeechallAPITypes.Components.Schemas.TranscriptionModelIdentifier) async throws -> String {
+        // we first check if the file is video (`isVideoFile`). if video, use `extractAudioFileFromVideo` to convert it to audio and use the returned url in the subsequent code
+        fatalError("implement")
         let fileHandle = try FileHandle(forReadingFrom: fileUrl)
 
         // Get file size using resourceValues
@@ -55,7 +57,7 @@ extension SpeechallClient {
             ),
             body: .audio__ast_(
                 HTTPBody(
-                    // UsefulThings library conforms FileHandle to AsyncSequence
+                    // UsefulThings library conforms FileHandle to AsyncSequence, so that we send it chunk by chunk without loading the entire file to memory
                     fileHandle,
                     length: length,
                     iterationBehavior: .single
