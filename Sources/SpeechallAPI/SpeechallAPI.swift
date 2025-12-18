@@ -2,7 +2,6 @@
 import OpenAPIRuntime
 import OpenAPIAsyncHTTPClient
 import SpeechallAPITypes
-import SpeechallAPI
 import Foundation
 import UsefulThings
 
@@ -43,18 +42,24 @@ extension SpeechallClient {
         inLanguage language: Components.Schemas.TranscriptLanguageCode = .auto,
         withInitialContext initialContext: String? = nil
     ) async throws -> String {
-        // we first check if the file is video (`isVideoFile`). if video, use `extractAudioFileFromVideo` to convert it to audio and use the returned url in the subsequent code
-        fatalError("implement")
-        let fileHandle = try FileHandle(forReadingFrom: fileUrl)
+        // Check if file is video and extract audio if needed
+        let audioUrl: URL
+        if isVideoFile(fileUrl) {
+            audioUrl = try await extractAudioFileFromVideo(fileUrl)
+        } else {
+            audioUrl = fileUrl
+        }
+
+        let fileHandle = try FileHandle(forReadingFrom: audioUrl)
 
         // Get file size using resourceValues
         let length: OpenAPIRuntime.HTTPBody.Length
-        if let fileSize = try fileUrl.resourceValues(forKeys: [.fileSizeKey]).fileSize {
+        if let fileSize = try audioUrl.resourceValues(forKeys: [.fileSizeKey]).fileSize {
             length = .known(Int64(fileSize))
         } else {
             length = .unknown
         }
-        
+
         let response = try await client.transcribe(
             query: .init(
                 model: modelId,
@@ -74,23 +79,104 @@ extension SpeechallClient {
         )
         let plainTextBody: HTTPBody = try response.ok.body.plainText
         // convert plainTextBody to String
-        fatalError("implement")
+        let buffer = try await plainTextBody.collect(upTo: 100 * 1024 * 1024, using: .init())
+        return String(buffer: buffer)
     }
 
     /// Returns transcription in subtitle format (SRT or VTT)
-    public func subtitlesFor(fileAt url: URL, as format: SubtitleFormat, withModel modelId: SpeechallAPITypes.Components.Schemas.TranscriptionModelIdentifier) async throws -> Components.Schemas.TranscriptionDetailed {
-        // `output_format: .srt` or `output_format: .vtt`
-        // the same as above: `try response.ok.body.plainText` etc.
-        fatalError("implement this")
+    public func subtitlesFor(
+        fileAt fileUrl: URL,
+        as format: SubtitleFormat,
+        withModel modelId: SpeechallAPITypes.Components.Schemas.TranscriptionModelIdentifier,
+        inLanguage language: Components.Schemas.TranscriptLanguageCode = .auto
+    ) async throws -> String {
+        // Check if file is video and extract audio if needed
+        let audioUrl: URL
+        if isVideoFile(fileUrl) {
+            audioUrl = try await extractAudioFileFromVideo(fileUrl)
+        } else {
+            audioUrl = fileUrl
+        }
+
+        let fileHandle = try FileHandle(forReadingFrom: audioUrl)
+
+        // Get file size using resourceValues
+        let length: OpenAPIRuntime.HTTPBody.Length
+        if let fileSize = try audioUrl.resourceValues(forKeys: [.fileSizeKey]).fileSize {
+            length = .known(Int64(fileSize))
+        } else {
+            length = .unknown
+        }
+
+        let outputFormat: Components.Schemas.TranscriptOutputFormat = format == .srt ? .srt : .vtt
+
+        let response = try await client.transcribe(
+            query: .init(
+                model: modelId,
+                language: language,
+                output_format: outputFormat,
+                punctuation: true
+            ),
+            body: .audio__ast_(
+                HTTPBody(
+                    fileHandle,
+                    length: length,
+                    iterationBehavior: .single
+                )
+            )
+        )
+        let plainTextBody: HTTPBody = try response.ok.body.plainText
+        let buffer = try await plainTextBody.collect(upTo: 100 * 1024 * 1024, using: .init())
+        return String(buffer: buffer)
     }
 
     /// Returns detailed transcription with word-level timestamps
-    public func detailedTranscription(of url: URL) async throws -> DetailedTranscription {
-        // output_format: .json
-        // `try response.ok.body.json` is of type enum `Components.Schemas.TranscriptionResponse`
-        // it has a case `case TranscriptionDetailed(Components.Schemas.TranscriptionDetailed)`
-        // return its associated value
-        fatalError("implement this")
+    public func detailedTranscription(
+        of fileUrl: URL,
+        withModel modelId: SpeechallAPITypes.Components.Schemas.TranscriptionModelIdentifier,
+        inLanguage language: Components.Schemas.TranscriptLanguageCode = .auto
+    ) async throws -> Components.Schemas.TranscriptionDetailed {
+        // Check if file is video and extract audio if needed
+        let audioUrl: URL
+        if isVideoFile(fileUrl) {
+            audioUrl = try await extractAudioFileFromVideo(fileUrl)
+        } else {
+            audioUrl = fileUrl
+        }
+
+        let fileHandle = try FileHandle(forReadingFrom: audioUrl)
+
+        // Get file size using resourceValues
+        let length: OpenAPIRuntime.HTTPBody.Length
+        if let fileSize = try audioUrl.resourceValues(forKeys: [.fileSizeKey]).fileSize {
+            length = .known(Int64(fileSize))
+        } else {
+            length = .unknown
+        }
+
+        let response = try await client.transcribe(
+            query: .init(
+                model: modelId,
+                language: language,
+                output_format: .json,
+                punctuation: true
+            ),
+            body: .audio__ast_(
+                HTTPBody(
+                    fileHandle,
+                    length: length,
+                    iterationBehavior: .single
+                )
+            )
+        )
+
+        let transcriptionResponse = try response.ok.body.json
+        switch transcriptionResponse {
+        case .TranscriptionDetailed(let detailed):
+            return detailed
+        case .TranscriptionOnlyText:
+            throw TranscriptionError.invalidResponse
+        }
     }
 }
 
@@ -99,18 +185,6 @@ extension SpeechallClient {
 public enum SubtitleFormat: String, Sendable {
     case srt
     case vtt
-}
-
-public struct DetailedTranscription: Sendable, Codable {
-    public let text: String
-    public let words: [TimestampedWord]
-
-    public struct TimestampedWord: Sendable, Codable {
-        public let word: String
-        public let startTime: TimeInterval
-        public let endTime: TimeInterval
-        public let confidence: Double?
-    }
 }
 
 // MARK: - Custom Errors

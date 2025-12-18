@@ -29,3 +29,4 @@ venv/
 
 # Audio files
 *.wav
+.claude/settings.local.json
