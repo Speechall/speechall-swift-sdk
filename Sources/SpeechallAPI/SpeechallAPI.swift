@@ -37,7 +37,12 @@ public struct SpeechallClient: Sendable {
 
 extension SpeechallClient {
     /// Returns plain text transcription
-    public func transcribe(fileAt fileUrl: URL, withModel modelId: SpeechallAPITypes.Components.Schemas.TranscriptionModelIdentifier) async throws -> String {
+    public func transcribe(
+        fileAt fileUrl: URL,
+        withModel modelId: SpeechallAPITypes.Components.Schemas.TranscriptionModelIdentifier,
+        inLanguage language: Components.Schemas.TranscriptLanguageCode = .auto,
+        withInitialContext initialContext: String? = nil
+    ) async throws -> String {
         // we first check if the file is video (`isVideoFile`). if video, use `extractAudioFileFromVideo` to convert it to audio and use the returned url in the subsequent code
         fatalError("implement")
         let fileHandle = try FileHandle(forReadingFrom: fileUrl)
@@ -53,7 +58,10 @@ extension SpeechallClient {
         let response = try await client.transcribe(
             query: .init(
                 model: modelId,
-                output_format: .text
+                language: language,
+                output_format: .text,
+                punctuation: true,
+                initial_prompt: initialContext
             ),
             body: .audio__ast_(
                 HTTPBody(
@@ -65,16 +73,23 @@ extension SpeechallClient {
             )
         )
         let plainTextBody: HTTPBody = try response.ok.body.plainText
+        // convert plainTextBody to String
         fatalError("implement")
     }
 
     /// Returns transcription in subtitle format (SRT or VTT)
-    public func subtitlesFor(fileAt url: URL, as format: SubtitleFormat, withModel modelId: SpeechallAPITypes.Components.Schemas.TranscriptionModelIdentifier) async throws -> String {
+    public func subtitlesFor(fileAt url: URL, as format: SubtitleFormat, withModel modelId: SpeechallAPITypes.Components.Schemas.TranscriptionModelIdentifier) async throws -> Components.Schemas.TranscriptionDetailed {
+        // `output_format: .srt` or `output_format: .vtt`
+        // the same as above: `try response.ok.body.plainText` etc.
         fatalError("implement this")
     }
 
     /// Returns detailed transcription with word-level timestamps
     public func detailedTranscription(of url: URL) async throws -> DetailedTranscription {
+        // output_format: .json
+        // `try response.ok.body.json` is of type enum `Components.Schemas.TranscriptionResponse`
+        // it has a case `case TranscriptionDetailed(Components.Schemas.TranscriptionDetailed)`
+        // return its associated value
         fatalError("implement this")
     }
 }
