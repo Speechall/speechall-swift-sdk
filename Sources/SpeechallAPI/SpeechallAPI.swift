@@ -1,32 +1,32 @@
-import OpenAPIRuntime
-import OpenAPIAsyncHTTPClient
-import SpeechallAPITypes
 import Foundation
+import OpenAPIAsyncHTTPClient
+import OpenAPIRuntime
+import SpeechallAPITypes
 import UsefulThings
-
 
 public struct SpeechallClient: Sendable {
     private let client: SpeechallAPI.Client
 
     public init(baseUrl: URL = URL(string: "https://api.speechall.com/v1")!, apiKey: String, timeoutInSeconds: TimeInterval = 1200) {
         self.client = SpeechallAPI.Client(
-           serverURL: baseUrl,
-           transport: AsyncHTTPClientTransport(
-            configuration: .init(
-                timeout: .seconds(
-                    .init(
-                        timeoutInSeconds
+            serverURL: baseUrl,
+            transport: AsyncHTTPClientTransport(
+                configuration: .init(
+                    timeout: .seconds(
+                        .init(
+                            timeoutInSeconds
+                        )
                     )
                 )
-            )
-           ),
-           middlewares: [AuthenticationMiddleware(apiKey: apiKey)]
+            ),
+            middlewares: [AuthenticationMiddleware(apiKey: apiKey)]
         )
     }
 }
 
 extension SpeechallClient {
-    /// Returns plain text transcription
+    /// Returns plain text transcription from a audio or video file
+    /// If it is a video file, it extracts the audio from it first.
     public func transcribe(
         fileAt fileUrl: URL,
         withModel modelId: SpeechallAPITypes.Components.Schemas.TranscriptionModelIdentifier,
@@ -44,6 +44,43 @@ extension SpeechallClient {
                 initial_prompt: initialContext
             ),
             body: .audio__ast_(body)
+        )
+        return try await response.ok.body.plainText.toString()
+    }
+
+    /// Returns plain text transcription by converting the raw audio recording bytes to WAV format first
+    /// because the providers expect full audio file format.
+    /// This is useful if you would like to use streaming audio recording data with the models that expect a file.
+    public func transcribe(
+        audioBytes: [UInt8],
+        withModel modelId: SpeechallAPITypes.Components.Schemas.TranscriptionModelIdentifier,
+        inLanguage language: Components.Schemas.TranscriptLanguageCode = .auto,
+        withInitialContext initialContext: String? = nil
+    ) async throws -> String {
+        // Convert floats to WAV format with proper headers
+        let wavHeader = createWAVHeader(
+            sampleRate: 16000,
+            channelCount: 1,
+            bitsPerSample: 32,
+            dataSize: audioBytes.count * MemoryLayout<Float>.size
+        )
+
+        var wavData = Data(wavHeader)
+        audioBytes.withUnsafeBytes {
+            wavData.append(Data($0))
+        }
+
+        let length: OpenAPIRuntime.HTTPBody.Length = .known(Int64(wavData.count))
+
+        let response = try await client.transcribe(
+            query: .init(
+                model: modelId,
+                language: language,
+                output_format: .text,
+                punctuation: true,
+                initial_prompt: initialContext
+            ),
+            body: .audio__ast_(HTTPBody(wavData, length: length))
         )
         return try await response.ok.body.plainText.toString()
     }
