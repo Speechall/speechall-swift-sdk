@@ -1,4 +1,4 @@
-#if canImport(Darwin)
+#if canImport(AVFoundation)
 import Foundation
 import AVFoundation
 
@@ -65,5 +65,8 @@ func extractAudioFileFromVideo(_ url: URL) async throws -> URL {
 
     return audioUrl
 }
-
+#else
+func extractAudioFileFromVideo(_ url: URL) async throws -> URL {
+    return url
+}
 #endif

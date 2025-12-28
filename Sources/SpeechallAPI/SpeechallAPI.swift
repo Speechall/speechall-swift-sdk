@@ -1,4 +1,3 @@
-#if canImport(Darwin)
 import OpenAPIRuntime
 import OpenAPIAsyncHTTPClient
 import SpeechallAPITypes
@@ -166,4 +165,3 @@ public enum TranscriptionError: Error, LocalizedError {
         }
     }
 }
-#endif
