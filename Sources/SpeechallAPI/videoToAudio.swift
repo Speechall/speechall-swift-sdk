@@ -10,7 +10,7 @@ func isVideoFile(_ url: URL) -> Bool {
 }
 
 /// Return audio file url in temporary folder
-func extractAudioFileFromVideo(_ url: URL) async throws -> URL {
+public func extractAudioFileFromVideo(_ url: URL) async throws -> URL {
 
     let audioUrl = URL(fileURLWithPath: NSTemporaryDirectory())
         .appendingPathComponent(UUID().uuidString)

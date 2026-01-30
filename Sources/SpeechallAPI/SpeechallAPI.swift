@@ -147,7 +147,7 @@ extension HTTPBody {
 // MARK: - Private Helpers
 
 
-private func prepareAudioBody(from fileUrl: URL) async throws -> HTTPBody {
+public func prepareAudioBody(from fileUrl: URL) async throws -> HTTPBody {
     // Check if file is video and extract audio if needed
     let audioUrl: URL
     if isVideoFile(fileUrl) {
