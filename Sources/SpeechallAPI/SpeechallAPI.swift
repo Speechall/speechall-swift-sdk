@@ -166,7 +166,9 @@ private func prepareAudioBody(from fileUrl: URL) async throws -> HTTPBody {
     // let body = HTTPBody(audioUrl.resourceBytes)
 
     return HTTPBody(
-        audioUrl.resourceBytes.chunks(ofCount: 8192),
+        // chunks(ofCount:) comes from AsyncAlgorithms
+        // 65536 is 64kb
+        audioUrl.resourceBytes.chunks(ofCount: 65536),
         length: length,
         iterationBehavior: .single
     )
