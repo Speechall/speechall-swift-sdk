@@ -2,7 +2,7 @@ import Foundation
 import OpenAPIAsyncHTTPClient
 import OpenAPIRuntime
 import SpeechallAPITypes
-import UsefulThings
+import AsyncAlgorithms
 
 public struct SpeechallClient: Sendable {
     private let client: SpeechallAPI.Client
@@ -146,32 +146,30 @@ extension HTTPBody {
 
 // MARK: - Private Helpers
 
-extension SpeechallClient {
-    private func prepareAudioBody(from fileUrl: URL) async throws -> HTTPBody {
-        // Check if file is video and extract audio if needed
-        let audioUrl: URL
-        if isVideoFile(fileUrl) {
-            audioUrl = try await extractAudioFileFromVideo(fileUrl)
-        } else {
-            audioUrl = fileUrl
-        }
 
-        let fileHandle = try FileHandle(forReadingFrom: audioUrl)
-
-        // Get file size using resourceValues
-        let length: OpenAPIRuntime.HTTPBody.Length
-        if let fileSize = try audioUrl.resourceValues(forKeys: [.fileSizeKey]).fileSize {
-            length = .known(Int64(fileSize))
-        } else {
-            length = .unknown
-        }
-
-        return HTTPBody(
-            fileHandle,
-            length: length,
-            iterationBehavior: .single
-        )
+private func prepareAudioBody(from fileUrl: URL) async throws -> HTTPBody {
+    // Check if file is video and extract audio if needed
+    let audioUrl: URL
+    if isVideoFile(fileUrl) {
+        audioUrl = try await extractAudioFileFromVideo(fileUrl)
+    } else {
+        audioUrl = fileUrl
     }
+
+    // Get file size using resourceValues
+    let length: OpenAPIRuntime.HTTPBody.Length
+    if let fileSize = try audioUrl.resourceValues(forKeys: [.fileSizeKey]).fileSize {
+        length = .known(Int64(fileSize))
+    } else {
+        length = .unknown
+    }
+    // let body = HTTPBody(audioUrl.resourceBytes)
+
+    return HTTPBody(
+        audioUrl.resourceBytes.chunks(ofCount: 8192),
+        length: length,
+        iterationBehavior: .single
+    )
 }
 
 // MARK: - Supporting Types

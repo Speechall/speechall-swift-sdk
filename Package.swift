@@ -28,6 +28,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-openapi-generator.git", from: "1.10.0"),
         .package(url: "https://github.com/apple/swift-openapi-runtime.git", from: "1.8.0"),
         .package(url: "https://github.com/swift-server/swift-openapi-async-http-client", from: "1.1.0"),
+        .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.1.1"),
         .package(url: "https://github.com/atacan/UsefulThings", branch: "main"),
     ],
     targets: [
@@ -44,8 +45,8 @@ let package = Package(
             dependencies: [
                 .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
                 .product(name: "OpenAPIAsyncHTTPClient", package: "swift-openapi-async-http-client"),
+                .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
                 .target(name: "SpeechallAPITypes"),
-                .product(name: "UsefulThings", package: "UsefulThings"),
             ]
         ),
         // Tests
