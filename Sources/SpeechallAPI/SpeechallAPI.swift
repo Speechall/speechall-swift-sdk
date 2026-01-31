@@ -165,18 +165,18 @@ public func prepareAudioBody(from fileUrl: URL) async throws -> HTTPBody {
         length = .unknown
     }
 
-    #if os(Darwin)
-    return HTTPBody(
-        // chunks(ofCount:) comes from AsyncAlgorithms
-        // 65536 is 64kb
-        audioUrl.asyncBytes.chunks(ofCount: 65536),
-        length: length,
-        iterationBehavior: .single
-    )
-    #elseif os(Linux)
+    #if os(Linux)
     let fileHandle = try FileHandle(forReadingFrom: audioUrl)
     return HTTPBody(
         fileHandle,
+        length: length,
+        iterationBehavior: .single
+    )
+    #else
+    return HTTPBody(
+        // chunks(ofCount:) comes from AsyncAlgorithms
+        // 65536 is 64kb
+        audioUrl.resourceBytes.chunks(ofCount: 65536),
         length: length,
         iterationBehavior: .single
     )
