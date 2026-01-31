@@ -47,6 +47,7 @@ let package = Package(
                 .product(name: "OpenAPIAsyncHTTPClient", package: "swift-openapi-async-http-client"),
                 .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
                 .target(name: "SpeechallAPITypes"),
+                .product(name: "UsefulThings", package: "UsefulThings")
             ]
         ),
         // Tests
