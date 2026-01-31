@@ -10,6 +10,15 @@
       }
     },
     {
+      "identity" : "ffmpeg-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/wendylabsinc/ffmpeg-swift",
+      "state" : {
+        "branch" : "main",
+        "revision" : "b88ee402662e079686455a58ab781e260261467d"
+      }
+    },
+    {
       "identity" : "openapikit",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mattpolzin/OpenAPIKit",
