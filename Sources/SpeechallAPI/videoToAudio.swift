@@ -1,6 +1,4 @@
-#if canImport(AVFoundation)
 import Foundation
-import AVFoundation
 
 func isVideoFile(_ url: URL) -> Bool {
     // is there better way?
@@ -8,6 +6,9 @@ func isVideoFile(_ url: URL) -> Bool {
     let pathExtension = url.pathExtension.lowercased()
     return ["mp4", "mov", "m4v", "avi"].contains(pathExtension)
 }
+
+#if canImport(AVFoundation)
+import AVFoundation
 
 /// Return audio file url in temporary folder
 public func extractAudioFileFromVideo(_ url: URL) async throws -> URL {

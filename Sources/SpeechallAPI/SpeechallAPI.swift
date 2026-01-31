@@ -1,4 +1,5 @@
 import Foundation
+import UsefulThings
 import OpenAPIAsyncHTTPClient
 import OpenAPIRuntime
 import SpeechallAPITypes
@@ -163,15 +164,23 @@ public func prepareAudioBody(from fileUrl: URL) async throws -> HTTPBody {
     } else {
         length = .unknown
     }
-    // let body = HTTPBody(audioUrl.resourceBytes)
 
+    #if os(Darwin)
     return HTTPBody(
         // chunks(ofCount:) comes from AsyncAlgorithms
         // 65536 is 64kb
-        audioUrl.resourceBytes.chunks(ofCount: 65536),
+        audioUrl.asyncBytes.chunks(ofCount: 65536),
         length: length,
         iterationBehavior: .single
     )
+    #elseif os(Linux)
+    let fileHandle = try FileHandle(forReadingFrom: audioUrl)
+    return HTTPBody(
+        fileHandle,
+        length: length,
+        iterationBehavior: .single
+    )
+    #endif
 }
 
 // MARK: - Supporting Types
