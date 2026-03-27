@@ -9,7 +9,7 @@ import PackageDescription
 let package = Package(
     name: "SpeechallAPI",
     platforms: [
-        .macOS(.v13),
+        .macOS(.v14),
         .iOS(.v16),
         .tvOS(.v16),
         .watchOS(.v9),

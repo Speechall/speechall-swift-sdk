@@ -29,6 +29,78 @@ struct SpeechallAPITests {
          )
      }()
 
+    @Test func listSpeechToTextModelsMatchesGeneratedEnum() async throws {
+        let response = try await client.listSpeechToTextModels()
+
+        let models: [Components.Schemas.SpeechToTextModel]
+        switch response {
+        case .ok(let ok):
+            models = try ok.body.json
+        case .badRequest(let badRequest):
+            Issue.record("Bad request: \(try badRequest.body.json.message)")
+            return
+        case .unauthorized(let unauthorized):
+            Issue.record("Unauthorized: \(try unauthorized.body.json.message)")
+            return
+        case .code402(let paymentRequired):
+            Issue.record("Payment required: \(try paymentRequired.body.json.message)")
+            return
+        case .notFound(let notFound):
+            Issue.record("Not found: \(try notFound.body.json.message)")
+            return
+        case .tooManyRequests(let tooManyRequests):
+            Issue.record("Too many requests: \(try tooManyRequests.body.json.message)")
+            return
+        case .internalServerError(let internalServerError):
+            Issue.record("Internal server error: \(try internalServerError.body.json.message)")
+            return
+        case .serviceUnavailable(let serviceUnavailable):
+            Issue.record("Service unavailable: \(try serviceUnavailable.body.json.message)")
+            return
+        case .gatewayTimeout(let gatewayTimeout):
+            Issue.record("Gateway timeout: \(try gatewayTimeout.body.json.message)")
+            return
+        case .undocumented(let statusCode, _):
+            Issue.record("Undocumented response with status code \(String(statusCode))")
+            return
+        }
+
+        let apiIDs = models.map(\.id.rawValue).sorted()
+        let generatedIDs = Components.Schemas.TranscriptionModelIdentifier.allCases.map(\.rawValue).sorted()
+
+        print("Speech-to-text models returned by API (\(apiIDs.count)):")
+        for modelID in apiIDs {
+            print("- \(modelID)")
+        }
+
+        #expect(
+            apiIDs.allSatisfy { $0.contains(".") },
+            "Every model ID should be in `provider.model` format. IDs: \(apiIDs.joined(separator: ", "))"
+        )
+
+        let apiIDSet = Set(apiIDs)
+        let generatedIDSet = Set(generatedIDs)
+        let duplicateAPIIDs = Dictionary(grouping: apiIDs, by: { $0 })
+            .filter { $0.value.count > 1 }
+            .keys
+            .sorted()
+        let missingFromAPI = generatedIDSet.subtracting(apiIDSet).sorted()
+        let missingFromGeneratedEnum = apiIDSet.subtracting(generatedIDSet).sorted()
+
+        #expect(
+            duplicateAPIIDs.isEmpty,
+            "API returned duplicate model IDs: \(duplicateAPIIDs.joined(separator: ", "))"
+        )
+        #expect(
+            missingFromAPI.isEmpty,
+            "Generated enum contains IDs missing from API: \(missingFromAPI.joined(separator: ", "))"
+        )
+        #expect(
+            missingFromGeneratedEnum.isEmpty,
+            "API returned IDs missing from generated enum: \(missingFromGeneratedEnum.joined(separator: ", "))"
+        )
+    }
+
     @Test func example() async throws {
         let audioData = try Data(contentsOf: URL(filePath: "/Users/atacan/Developer/Repositories/Speechall-SDK/speechall-typescript-sdk/examples/sample-audio.wav"))
         let response = try await client.transcribe(
@@ -77,4 +149,6 @@ struct SpeechallAPITests {
             
         }
     }
+
+    
 }
