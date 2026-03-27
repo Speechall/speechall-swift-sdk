@@ -81,6 +81,7 @@ test-on-linux: ## Run swift tests inside a Docker container
 		swift test
 
 regenerate:
+	curl https://raw.githubusercontent.com/Speechall/speechall-openapi/refs/heads/main/openapi.yaml -o original_openapi.yaml
 	uvx --from git+https://github.com/atacan/swift-package-generator-based-on-openapi.git swift-bootstrapper .
 
 generate: ## Generate Swift code from OpenAPI spec

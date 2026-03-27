@@ -280,8 +280,6 @@ public enum Components {
             case deepgram_period_whisper_hyphen_small = "deepgram.whisper-small"
             case deepgram_period_whisper_hyphen_tiny = "deepgram.whisper-tiny"
             case elevenlabs_period_scribe_hyphen_v1 = "elevenlabs.scribe-v1"
-            case falai_period_elevenlabs_hyphen_speech_hyphen_to_hyphen_text = "falai.elevenlabs-speech-to-text"
-            case falai_period_speech_hyphen_to_hyphen_text = "falai.speech-to-text"
             case falai_period_whisper = "falai.whisper"
             case falai_period_wizper = "falai.wizper"
             case fireworksai_period_whisper_hyphen_v3 = "fireworksai.whisper-v3"
