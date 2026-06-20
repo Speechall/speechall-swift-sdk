@@ -21,7 +21,7 @@ Add SpeechallAPI to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Speechall-SDK/speechall-swift-sdk", from: "0.0.1")
+    .package(url: "https://github.com/Speechall-SDK/speechall-swift-sdk", from: "0.1.0")
 ]
 ```
 
