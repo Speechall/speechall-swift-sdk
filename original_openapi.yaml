@@ -7,7 +7,7 @@ info:
     It allows you to transcribe audio files using various underlying STT providers and models,
     optionally apply custom text replacement rules, and access results in multiple formats.
     The API includes standard endpoints for transcription and endpoints compatible with the OpenAI API structure.
-  version: 0.1.3
+  version: 0.3.0
   termsOfService: https://speechall.com/terms
   contact:
     name: Speechall Support
@@ -458,7 +458,6 @@ components:
       example: "openai.whisper-1"
       enum:
         - amazon.transcribe
-        - assemblyai.best
         - assemblyai.universal
         - assemblyai.universal-2
         - assemblyai.universal-3-pro
@@ -466,44 +465,38 @@ components:
         - cloudflare.whisper
         - cloudflare.whisper-large-v3-turbo
         - cloudflare.whisper-tiny-en
-        - deepgram.base
-        - deepgram.base-conversationalai
-        - deepgram.base-finance
-        - deepgram.base-general
-        - deepgram.base-meeting
-        - deepgram.base-phonecall
-        - deepgram.base-video
-        - deepgram.base-voicemail
-        - deepgram.enhanced
-        - deepgram.enhanced-finance
-        - deepgram.enhanced-general
-        - deepgram.enhanced-meeting
-        - deepgram.enhanced-phonecall
-        - deepgram.nova
-        - deepgram.nova-general
-        - deepgram.nova-phonecall
-        - deepgram.nova-2
-        - deepgram.nova-2-atc
-        - deepgram.nova-2-automotive
-        - deepgram.nova-2-conversationalai
-        - deepgram.nova-2-drivethru
-        - deepgram.nova-2-finance
-        - deepgram.nova-2-general
-        - deepgram.nova-2-medical
-        - deepgram.nova-2-meeting
-        - deepgram.nova-2-phonecall
-        - deepgram.nova-2-video
-        - deepgram.nova-2-voicemail
         - deepgram.nova-3
         - deepgram.nova-3-general
         - deepgram.nova-3-medical
-        - deepgram.whisper
-        - deepgram.whisper-base
-        - deepgram.whisper-large
-        - deepgram.whisper-medium
-        - deepgram.whisper-small
-        - deepgram.whisper-tiny
+        - deepgram.nova-2
+        - deepgram.nova-2-general
+        - deepgram.nova-2-meeting
+        - deepgram.nova-2-finance
+        - deepgram.nova-2-conversationalai
+        - deepgram.nova-2-voicemail
+        - deepgram.nova-2-video
+        - deepgram.nova-2-medical
+        - deepgram.nova-2-drivethru
+        - deepgram.nova-2-automotive
+        - deepgram.nova
+        - deepgram.nova-general
+        - deepgram.nova-phonecall
+        - deepgram.nova-medical
+        - deepgram.enhanced
+        - deepgram.enhanced-general
+        - deepgram.enhanced-meeting
+        - deepgram.enhanced-phonecall
+        - deepgram.enhanced-finance
+        - deepgram.base
+        - deepgram.meeting
+        - deepgram.phonecall
+        - deepgram.finance
+        - deepgram.conversationalai
+        - deepgram.voicemail
+        - deepgram.video
         - elevenlabs.scribe-v1
+        - falai.cohere-transcribe
+        - falai.nvidia-nemotron-asr-multilingual
         - falai.whisper
         - falai.wizper
         - fireworksai.whisper-v3
@@ -1145,7 +1138,6 @@ components:
             - type: string
               enum: # Explicitly listing common translation models
                 - openai.whisper-1
-                - deepgram.whisper-large # Example, check actual capability
         prompt:
           description: >
             An optional text to guide the model's style or continue a previous
