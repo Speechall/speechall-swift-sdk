@@ -28,20 +28,36 @@ struct SpeechallClientTests {
     let sampleAudioUrl = URL(fileURLWithPath: "/Users/atacan/Developer/Repositories/Speechall-SDK/speechall-typescript-sdk/examples/sample-audio.wav")
 
     @Test func testTranscribe() async throws {
-        let transcription = try await client.transcribe(
-            fileAt: sampleAudioUrl,
-            withModel: .cloudflare_period_whisper
-        )
+        let transcription: String
+        do {
+            transcription = try await client.transcribe(
+                fileAt: sampleAudioUrl,
+                withModel: .cloudflare_period_whisper
+            )
+        } catch {
+            if shouldSkipTransientLiveAPIError(error, operation: "transcription") {
+                return
+            }
+            throw error
+        }
 
         #expect(!transcription.isEmpty, "Transcription should not be empty")
     }
 
     @Test func testSubtitlesForSRT() async throws {
-        let subtitles = try await client.subtitlesFor(
-            fileAt: sampleAudioUrl,
-            as: .srt,
-            withModel: .cloudflare_period_whisper
-        )
+        let subtitles: String
+        do {
+            subtitles = try await client.subtitlesFor(
+                fileAt: sampleAudioUrl,
+                as: .srt,
+                withModel: .cloudflare_period_whisper
+            )
+        } catch {
+            if shouldSkipTransientLiveAPIError(error, operation: "SRT subtitles") {
+                return
+            }
+            throw error
+        }
 
         #expect(!subtitles.isEmpty, "Subtitles should not be empty")
         // SRT format contains timestamp arrows like "00:00:00,000 --> 00:00:01,000"
@@ -49,21 +65,37 @@ struct SpeechallClientTests {
     }
 
     @Test func testSubtitlesForVTT() async throws {
-        let subtitles = try await client.subtitlesFor(
-            fileAt: sampleAudioUrl,
-            as: .vtt,
-            withModel: .cloudflare_period_whisper
-        )
+        let subtitles: String
+        do {
+            subtitles = try await client.subtitlesFor(
+                fileAt: sampleAudioUrl,
+                as: .vtt,
+                withModel: .cloudflare_period_whisper
+            )
+        } catch {
+            if shouldSkipTransientLiveAPIError(error, operation: "VTT subtitles") {
+                return
+            }
+            throw error
+        }
 
         #expect(!subtitles.isEmpty, "Subtitles should not be empty")
         #expect(subtitles.contains("WEBVTT"), "VTT should contain WEBVTT header")
     }
 
     @Test func testDetailedTranscription() async throws {
-        let detailed = try await client.detailedTranscription(
-            of: sampleAudioUrl,
-            withModel: .cloudflare_period_whisper
-        )
+        let detailed: Components.Schemas.TranscriptionDetailed
+        do {
+            detailed = try await client.detailedTranscription(
+                of: sampleAudioUrl,
+                withModel: .cloudflare_period_whisper
+            )
+        } catch {
+            if shouldSkipTransientLiveAPIError(error, operation: "detailed transcription") {
+                return
+            }
+            throw error
+        }
 
         #expect(!detailed.id.isEmpty, "Transcription ID should not be empty")
         #expect(!detailed.text.isEmpty, "Transcription text should not be empty")
