@@ -9,10 +9,11 @@ import PackageDescription
 let package = Package(
     name: "SpeechallAPI",
     platforms: [
+        .iOS(.v17),
         .macOS(.v14),
-        .iOS(.v16),
-        .tvOS(.v16),
-        .watchOS(.v9),
+        .tvOS(.v17),
+        .watchOS(.v10),
+        .visionOS(.v1),
     ],
     products: [
         .library(
