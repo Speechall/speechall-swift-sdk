@@ -236,7 +236,7 @@ public enum Components {
             case amazon_period_transcribe = "amazon.transcribe"
             case assemblyai_period_universal = "assemblyai.universal"
             case assemblyai_period_universal_hyphen_2 = "assemblyai.universal-2"
-            case assemblyai_period_universal_hyphen_3_hyphen_pro = "assemblyai.universal-3-pro"
+            case assemblyai_period_universal_hyphen_3_hyphen_5_hyphen_pro = "assemblyai.universal-3-5-pro"
             case azure_period_standard = "azure.standard"
             case cloudflare_period_whisper = "cloudflare.whisper"
             case cloudflare_period_whisper_hyphen_large_hyphen_v3_hyphen_turbo = "cloudflare.whisper-large-v3-turbo"

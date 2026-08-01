@@ -7,7 +7,7 @@ info:
     It allows you to transcribe audio files using various underlying STT providers and models,
     optionally apply custom text replacement rules, and access results in multiple formats.
     The API includes standard endpoints for transcription and endpoints compatible with the OpenAI API structure.
-  version: 0.3.0
+  version: 0.4.0
   termsOfService: https://speechall.com/terms
   contact:
     name: Speechall Support
@@ -460,7 +460,7 @@ components:
         - amazon.transcribe
         - assemblyai.universal
         - assemblyai.universal-2
-        - assemblyai.universal-3-pro
+        - assemblyai.universal-3-5-pro
         - azure.standard
         - cloudflare.whisper
         - cloudflare.whisper-large-v3-turbo
