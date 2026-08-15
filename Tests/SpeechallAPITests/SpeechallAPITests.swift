@@ -93,7 +93,7 @@ struct SpeechallAPITests {
             return
         }
 
-        let apiIDs = models.map(\.id.rawValue).sorted()
+        let apiIDs = models.map(\.id).sorted()
         let generatedIDs = Components.Schemas.TranscriptionModelIdentifier.allCases.map(\.rawValue).sorted()
 
         print("Speech-to-text models returned by API (\(apiIDs.count)):")
@@ -137,7 +137,7 @@ struct SpeechallAPITests {
         let response: Operations.transcribe.Output
         do {
             response = try await client.transcribe(
-                query: .init(model: .cloudflare_period_whisper),
+                query: .init(model: Components.Schemas.TranscriptionModelIdentifier.cloudflare_period_whisper.rawValue),
                 body: .audio__ast_(
                     HTTPBody(
                         audioData
