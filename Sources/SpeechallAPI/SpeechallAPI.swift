@@ -38,7 +38,7 @@ extension SpeechallClient {
 
         let response = try await client.transcribe(
             query: .init(
-                model: modelId,
+                model: modelId.rawValue,
                 language: language,
                 output_format: .text,
                 punctuation: true,
@@ -75,7 +75,7 @@ extension SpeechallClient {
 
         let response = try await client.transcribe(
             query: .init(
-                model: modelId,
+                model: modelId.rawValue,
                 language: language,
                 output_format: .text,
                 punctuation: true,
@@ -98,7 +98,7 @@ extension SpeechallClient {
 
         let response = try await client.transcribe(
             query: .init(
-                model: modelId,
+                model: modelId.rawValue,
                 language: language,
                 output_format: outputFormat,
                 punctuation: true
@@ -118,7 +118,7 @@ extension SpeechallClient {
 
         let response = try await client.transcribe(
             query: .init(
-                model: modelId,
+                model: modelId.rawValue,
                 language: language,
                 output_format: .json,
                 punctuation: true

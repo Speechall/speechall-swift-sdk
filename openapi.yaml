@@ -14,7 +14,7 @@ info:
     with the OpenAI API structure.
 
     '
-  version: 0.4.0
+  version: 0.7.0
   termsOfService: https://speechall.com/terms
   contact:
     name: Speechall Support
@@ -56,7 +56,7 @@ paths:
         name: model
         required: true
         schema:
-          $ref: '#/components/schemas/TranscriptionModelIdentifier'
+          $ref: '#/components/schemas/OpenTranscriptionModelIdentifier'
         description: The identifier of the speech-to-text model to use for the transcription,
           in the format `provider.model`. See the `/speech-to-text-models` endpoint
           for available models.
@@ -474,7 +474,7 @@ paths:
                   $ref: '#/components/schemas/SpeechToTextModel'
               example:
               - provider: openai
-                model: openai.whisper-1
+                id: openai.whisper-1
                 display_name: OpenAI Whisper v2
                 description: OpenAI's large Whisper model (version 2).
                 supported_languages:
@@ -525,8 +525,6 @@ components:
       - cloudflare
       - deepgram
       - elevenlabs
-      - falai
-      - fireworksai
       - gemini
       - gladia
       - google
@@ -536,6 +534,12 @@ components:
       - openai
       - revai
       - speechmatics
+    OpenTranscriptionModelIdentifier:
+      type: string
+      description: An opaque Speech-to-Text model identifier in `provider.model_name`
+        form. Obtain currently available values from the `/speech-to-text-models`
+        endpoint.
+      example: openai.whisper-1
     TranscriptionModelIdentifier:
       type: string
       description: Unique identifier for a specific Speech-to-Text model, composed
@@ -543,66 +547,60 @@ components:
       example: openai.whisper-1
       enum:
       - amazon.transcribe
-      - assemblyai.universal
       - assemblyai.universal-2
       - assemblyai.universal-3-5-pro
       - azure.standard
       - cloudflare.whisper
       - cloudflare.whisper-large-v3-turbo
       - cloudflare.whisper-tiny-en
-      - deepgram.nova-3
-      - deepgram.nova-3-general
-      - deepgram.nova-3-medical
-      - deepgram.nova-2
-      - deepgram.nova-2-general
-      - deepgram.nova-2-meeting
-      - deepgram.nova-2-finance
-      - deepgram.nova-2-conversationalai
-      - deepgram.nova-2-voicemail
-      - deepgram.nova-2-video
-      - deepgram.nova-2-medical
-      - deepgram.nova-2-drivethru
-      - deepgram.nova-2-automotive
-      - deepgram.nova
-      - deepgram.nova-general
-      - deepgram.nova-phonecall
-      - deepgram.nova-medical
+      - deepgram.base
+      - deepgram.conversationalai
       - deepgram.enhanced
+      - deepgram.enhanced-finance
       - deepgram.enhanced-general
       - deepgram.enhanced-meeting
       - deepgram.enhanced-phonecall
-      - deepgram.enhanced-finance
-      - deepgram.base
-      - deepgram.meeting
-      - deepgram.phonecall
       - deepgram.finance
-      - deepgram.conversationalai
-      - deepgram.voicemail
+      - deepgram.meeting
+      - deepgram.nova
+      - deepgram.nova-2
+      - deepgram.nova-2-automotive
+      - deepgram.nova-2-conversationalai
+      - deepgram.nova-2-drivethru
+      - deepgram.nova-2-finance
+      - deepgram.nova-2-general
+      - deepgram.nova-2-medical
+      - deepgram.nova-2-meeting
+      - deepgram.nova-2-video
+      - deepgram.nova-2-voicemail
+      - deepgram.nova-3
+      - deepgram.nova-3-general
+      - deepgram.nova-3-medical
+      - deepgram.nova-general
+      - deepgram.nova-medical
+      - deepgram.nova-phonecall
+      - deepgram.phonecall
       - deepgram.video
+      - deepgram.voicemail
       - elevenlabs.scribe-v1
-      - falai.cohere-transcribe
-      - falai.nvidia-nemotron-asr-multilingual
-      - falai.whisper
-      - falai.wizper
-      - fireworksai.whisper-v3
-      - fireworksai.whisper-v3-turbo
+      - elevenlabs.scribe-v2
+      - gemini.gemini-2.5-flash
+      - gemini.gemini-2.5-flash-lite
+      - gemini.gemini-2.5-pro
       - gladia.standard
       - google.enhanced
       - google.standard
-      - gemini.gemini-2.5-pro
-      - gemini.gemini-2.5-flash
-      - gemini.gemini-2.5-flash-lite
       - groq.whisper-large-v3
       - groq.whisper-large-v3-turbo
       - ibm.standard
       - mistral.voxtral-mini
       - mistral.voxtral-mini-v2
-      - openai.whisper-1
-      - openai.gpt-4o-transcribe
       - openai.gpt-4o-mini-transcribe
+      - openai.gpt-4o-transcribe
       - openai.gpt-4o-transcribe-diarize
-      - revai.machine
+      - openai.whisper-1
       - revai.fusion
+      - revai.machine
       - speechmatics.enhanced
       - speechmatics.standard
     BaseTranscriptionConfiguration:
@@ -611,7 +609,7 @@ components:
         direct uploads and remote URLs.
       properties:
         model:
-          $ref: '#/components/schemas/TranscriptionModelIdentifier'
+          $ref: '#/components/schemas/OpenTranscriptionModelIdentifier'
           description: The identifier of the speech-to-text model to use.
         language:
           $ref: '#/components/schemas/TranscriptLanguageCode'
@@ -966,7 +964,7 @@ components:
       - supports_vtt
       properties:
         id:
-          $ref: '#/components/schemas/TranscriptionModelIdentifier'
+          $ref: '#/components/schemas/OpenTranscriptionModelIdentifier'
           description: The unique identifier for this model (`provider.model_name`).
         display_name:
           type: string
@@ -1164,7 +1162,7 @@ components:
           type: string
           format: binary
         model:
-          $ref: '#/components/schemas/TranscriptionModelIdentifier'
+          $ref: '#/components/schemas/OpenTranscriptionModelIdentifier'
           description: The Speechall model identifier (`provider.model`) to use for
             transcription.
         language:
@@ -1272,16 +1270,9 @@ components:
           type: string
           format: binary
         model:
-          description: 'ID of the model to use. It follows the naming convention provider/model-name
-
-            '
-          example: openai/whisper-1
-          anyOf:
-          - type: string
-            description: A valid Speechall model identifier capable of translation.
-          - type: string
-            enum:
-            - openai.whisper-1
+          $ref: '#/components/schemas/OpenTranscriptionModelIdentifier'
+          description: A Speechall model identifier capable of translation, in `provider.model`
+            form.
         prompt:
           description: 'An optional text to guide the model''s style or continue a
             previous audio segment. The [prompt](/docs/guides/speech-to-text/prompting)

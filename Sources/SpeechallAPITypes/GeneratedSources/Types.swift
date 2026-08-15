@@ -217,8 +217,6 @@ public enum Components {
             case cloudflare = "cloudflare"
             case deepgram = "deepgram"
             case elevenlabs = "elevenlabs"
-            case falai = "falai"
-            case fireworksai = "fireworksai"
             case gemini = "gemini"
             case gladia = "gladia"
             case google = "google"
@@ -229,71 +227,69 @@ public enum Components {
             case revai = "revai"
             case speechmatics = "speechmatics"
         }
+        /// An opaque Speech-to-Text model identifier in `provider.model_name` form. Obtain currently available values from the `/speech-to-text-models` endpoint.
+        ///
+        /// - Remark: Generated from `#/components/schemas/OpenTranscriptionModelIdentifier`.
+        public typealias OpenTranscriptionModelIdentifier = Swift.String
         /// Unique identifier for a specific Speech-to-Text model, composed as `provider.model_name`. Used to select the engine for transcription.
         ///
         /// - Remark: Generated from `#/components/schemas/TranscriptionModelIdentifier`.
         @frozen public enum TranscriptionModelIdentifier: String, Codable, Hashable, Sendable, CaseIterable {
             case amazon_period_transcribe = "amazon.transcribe"
-            case assemblyai_period_universal = "assemblyai.universal"
             case assemblyai_period_universal_hyphen_2 = "assemblyai.universal-2"
             case assemblyai_period_universal_hyphen_3_hyphen_5_hyphen_pro = "assemblyai.universal-3-5-pro"
             case azure_period_standard = "azure.standard"
             case cloudflare_period_whisper = "cloudflare.whisper"
             case cloudflare_period_whisper_hyphen_large_hyphen_v3_hyphen_turbo = "cloudflare.whisper-large-v3-turbo"
             case cloudflare_period_whisper_hyphen_tiny_hyphen_en = "cloudflare.whisper-tiny-en"
-            case deepgram_period_nova_hyphen_3 = "deepgram.nova-3"
-            case deepgram_period_nova_hyphen_3_hyphen_general = "deepgram.nova-3-general"
-            case deepgram_period_nova_hyphen_3_hyphen_medical = "deepgram.nova-3-medical"
-            case deepgram_period_nova_hyphen_2 = "deepgram.nova-2"
-            case deepgram_period_nova_hyphen_2_hyphen_general = "deepgram.nova-2-general"
-            case deepgram_period_nova_hyphen_2_hyphen_meeting = "deepgram.nova-2-meeting"
-            case deepgram_period_nova_hyphen_2_hyphen_finance = "deepgram.nova-2-finance"
-            case deepgram_period_nova_hyphen_2_hyphen_conversationalai = "deepgram.nova-2-conversationalai"
-            case deepgram_period_nova_hyphen_2_hyphen_voicemail = "deepgram.nova-2-voicemail"
-            case deepgram_period_nova_hyphen_2_hyphen_video = "deepgram.nova-2-video"
-            case deepgram_period_nova_hyphen_2_hyphen_medical = "deepgram.nova-2-medical"
-            case deepgram_period_nova_hyphen_2_hyphen_drivethru = "deepgram.nova-2-drivethru"
-            case deepgram_period_nova_hyphen_2_hyphen_automotive = "deepgram.nova-2-automotive"
-            case deepgram_period_nova = "deepgram.nova"
-            case deepgram_period_nova_hyphen_general = "deepgram.nova-general"
-            case deepgram_period_nova_hyphen_phonecall = "deepgram.nova-phonecall"
-            case deepgram_period_nova_hyphen_medical = "deepgram.nova-medical"
+            case deepgram_period_base = "deepgram.base"
+            case deepgram_period_conversationalai = "deepgram.conversationalai"
             case deepgram_period_enhanced = "deepgram.enhanced"
+            case deepgram_period_enhanced_hyphen_finance = "deepgram.enhanced-finance"
             case deepgram_period_enhanced_hyphen_general = "deepgram.enhanced-general"
             case deepgram_period_enhanced_hyphen_meeting = "deepgram.enhanced-meeting"
             case deepgram_period_enhanced_hyphen_phonecall = "deepgram.enhanced-phonecall"
-            case deepgram_period_enhanced_hyphen_finance = "deepgram.enhanced-finance"
-            case deepgram_period_base = "deepgram.base"
-            case deepgram_period_meeting = "deepgram.meeting"
-            case deepgram_period_phonecall = "deepgram.phonecall"
             case deepgram_period_finance = "deepgram.finance"
-            case deepgram_period_conversationalai = "deepgram.conversationalai"
-            case deepgram_period_voicemail = "deepgram.voicemail"
+            case deepgram_period_meeting = "deepgram.meeting"
+            case deepgram_period_nova = "deepgram.nova"
+            case deepgram_period_nova_hyphen_2 = "deepgram.nova-2"
+            case deepgram_period_nova_hyphen_2_hyphen_automotive = "deepgram.nova-2-automotive"
+            case deepgram_period_nova_hyphen_2_hyphen_conversationalai = "deepgram.nova-2-conversationalai"
+            case deepgram_period_nova_hyphen_2_hyphen_drivethru = "deepgram.nova-2-drivethru"
+            case deepgram_period_nova_hyphen_2_hyphen_finance = "deepgram.nova-2-finance"
+            case deepgram_period_nova_hyphen_2_hyphen_general = "deepgram.nova-2-general"
+            case deepgram_period_nova_hyphen_2_hyphen_medical = "deepgram.nova-2-medical"
+            case deepgram_period_nova_hyphen_2_hyphen_meeting = "deepgram.nova-2-meeting"
+            case deepgram_period_nova_hyphen_2_hyphen_video = "deepgram.nova-2-video"
+            case deepgram_period_nova_hyphen_2_hyphen_voicemail = "deepgram.nova-2-voicemail"
+            case deepgram_period_nova_hyphen_3 = "deepgram.nova-3"
+            case deepgram_period_nova_hyphen_3_hyphen_general = "deepgram.nova-3-general"
+            case deepgram_period_nova_hyphen_3_hyphen_medical = "deepgram.nova-3-medical"
+            case deepgram_period_nova_hyphen_general = "deepgram.nova-general"
+            case deepgram_period_nova_hyphen_medical = "deepgram.nova-medical"
+            case deepgram_period_nova_hyphen_phonecall = "deepgram.nova-phonecall"
+            case deepgram_period_phonecall = "deepgram.phonecall"
             case deepgram_period_video = "deepgram.video"
+            case deepgram_period_voicemail = "deepgram.voicemail"
             case elevenlabs_period_scribe_hyphen_v1 = "elevenlabs.scribe-v1"
-            case falai_period_cohere_hyphen_transcribe = "falai.cohere-transcribe"
-            case falai_period_nvidia_hyphen_nemotron_hyphen_asr_hyphen_multilingual = "falai.nvidia-nemotron-asr-multilingual"
-            case falai_period_whisper = "falai.whisper"
-            case falai_period_wizper = "falai.wizper"
-            case fireworksai_period_whisper_hyphen_v3 = "fireworksai.whisper-v3"
-            case fireworksai_period_whisper_hyphen_v3_hyphen_turbo = "fireworksai.whisper-v3-turbo"
+            case elevenlabs_period_scribe_hyphen_v2 = "elevenlabs.scribe-v2"
+            case gemini_period_gemini_hyphen_2_period_5_hyphen_flash = "gemini.gemini-2.5-flash"
+            case gemini_period_gemini_hyphen_2_period_5_hyphen_flash_hyphen_lite = "gemini.gemini-2.5-flash-lite"
+            case gemini_period_gemini_hyphen_2_period_5_hyphen_pro = "gemini.gemini-2.5-pro"
             case gladia_period_standard = "gladia.standard"
             case google_period_enhanced = "google.enhanced"
             case google_period_standard = "google.standard"
-            case gemini_period_gemini_hyphen_2_period_5_hyphen_pro = "gemini.gemini-2.5-pro"
-            case gemini_period_gemini_hyphen_2_period_5_hyphen_flash = "gemini.gemini-2.5-flash"
-            case gemini_period_gemini_hyphen_2_period_5_hyphen_flash_hyphen_lite = "gemini.gemini-2.5-flash-lite"
             case groq_period_whisper_hyphen_large_hyphen_v3 = "groq.whisper-large-v3"
             case groq_period_whisper_hyphen_large_hyphen_v3_hyphen_turbo = "groq.whisper-large-v3-turbo"
             case ibm_period_standard = "ibm.standard"
             case mistral_period_voxtral_hyphen_mini = "mistral.voxtral-mini"
             case mistral_period_voxtral_hyphen_mini_hyphen_v2 = "mistral.voxtral-mini-v2"
-            case openai_period_whisper_hyphen_1 = "openai.whisper-1"
-            case openai_period_gpt_hyphen_4o_hyphen_transcribe = "openai.gpt-4o-transcribe"
             case openai_period_gpt_hyphen_4o_hyphen_mini_hyphen_transcribe = "openai.gpt-4o-mini-transcribe"
+            case openai_period_gpt_hyphen_4o_hyphen_transcribe = "openai.gpt-4o-transcribe"
             case openai_period_gpt_hyphen_4o_hyphen_transcribe_hyphen_diarize = "openai.gpt-4o-transcribe-diarize"
-            case revai_period_machine = "revai.machine"
+            case openai_period_whisper_hyphen_1 = "openai.whisper-1"
             case revai_period_fusion = "revai.fusion"
+            case revai_period_machine = "revai.machine"
             case speechmatics_period_enhanced = "speechmatics.enhanced"
             case speechmatics_period_standard = "speechmatics.standard"
         }
@@ -302,7 +298,7 @@ public enum Components {
         /// - Remark: Generated from `#/components/schemas/BaseTranscriptionConfiguration`.
         public struct BaseTranscriptionConfiguration: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/BaseTranscriptionConfiguration/model`.
-            public var model: Components.Schemas.TranscriptionModelIdentifier
+            public var model: Components.Schemas.OpenTranscriptionModelIdentifier
             /// - Remark: Generated from `#/components/schemas/BaseTranscriptionConfiguration/language`.
             public var language: Components.Schemas.TranscriptLanguageCode?
             /// - Remark: Generated from `#/components/schemas/BaseTranscriptionConfiguration/output_format`.
@@ -349,7 +345,7 @@ public enum Components {
             ///   - speakers_expected: Hint for the number of expected speakers for diarization (e.g., RevAI, Deepgram).
             ///   - custom_vocabulary: List of custom words/phrases to improve recognition (e.g., Deepgram, AssemblyAI).
             public init(
-                model: Components.Schemas.TranscriptionModelIdentifier,
+                model: Components.Schemas.OpenTranscriptionModelIdentifier,
                 language: Components.Schemas.TranscriptLanguageCode? = nil,
                 output_format: Components.Schemas.TranscriptOutputFormat? = nil,
                 ruleset_id: Swift.String? = nil,
@@ -798,7 +794,7 @@ public enum Components {
         /// - Remark: Generated from `#/components/schemas/SpeechToTextModel`.
         public struct SpeechToTextModel: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/SpeechToTextModel/id`.
-            public var id: Components.Schemas.TranscriptionModelIdentifier
+            public var id: Components.Schemas.OpenTranscriptionModelIdentifier
             /// A user-friendly name for the model.
             ///
             /// - Remark: Generated from `#/components/schemas/SpeechToTextModel/display_name`.
@@ -966,7 +962,7 @@ public enum Components {
             ///   - supports_vtt: Indicates whether the model supports VTT subtitle format output.
             ///   - voice_activity_detection: Indicates whether the model supports voice activity detection (VAD) to identify speech segments.
             public init(
-                id: Components.Schemas.TranscriptionModelIdentifier,
+                id: Components.Schemas.OpenTranscriptionModelIdentifier,
                 display_name: Swift.String,
                 provider: Components.Schemas.TranscriptionProvider,
                 description: Swift.String? = nil,
@@ -2119,7 +2115,7 @@ public enum Operations {
                 /// The identifier of the speech-to-text model to use for the transcription, in the format `provider.model`. See the `/speech-to-text-models` endpoint for available models.
                 ///
                 /// - Remark: Generated from `#/paths/transcribe/POST/query/model`.
-                public var model: Components.Schemas.TranscriptionModelIdentifier
+                public var model: Components.Schemas.OpenTranscriptionModelIdentifier
                 /// The language of the audio file in ISO 639-1 format (e.g., `en`, `es`, `fr`). Specify `auto` for automatic language detection (if supported by the model). Defaults to `en` if not provided. Providing the correct language improves accuracy and latency.
                 ///
                 /// - Remark: Generated from `#/paths/transcribe/POST/query/language`.
@@ -2170,7 +2166,7 @@ public enum Operations {
                 ///   - speakers_expected: Provides a hint to the diarization process about the number of expected speakers. May improve accuracy for some providers (e.g., RevAI, Deepgram).
                 ///   - custom_vocabulary: Provide a list of specific words or phrases (e.g., proper nouns, jargon) to increase their recognition likelihood. Support varies by provider (e.g., Deepgram, AssemblyAI).
                 public init(
-                    model: Components.Schemas.TranscriptionModelIdentifier,
+                    model: Components.Schemas.OpenTranscriptionModelIdentifier,
                     language: Components.Schemas.TranscriptLanguageCode? = nil,
                     output_format: Components.Schemas.TranscriptOutputFormat? = nil,
                     ruleset_id: Swift.String? = nil,
