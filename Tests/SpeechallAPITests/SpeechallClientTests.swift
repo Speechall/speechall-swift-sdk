@@ -25,7 +25,11 @@ struct SpeechallClientTests {
         return SpeechallClient(apiKey: apiKey)
     }()
 
-    let sampleAudioUrl = URL(fileURLWithPath: "/Users/atacan/Developer/Repositories/Speechall-SDK/speechall-typescript-sdk/examples/sample-audio.wav")
+    let sampleAudioUrl = URL(fileURLWithPath: #filePath)
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .appendingPathComponent("sample-audio.wav")
 
     @Test func testTranscribe() async throws {
         let transcription: String

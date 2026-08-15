@@ -133,7 +133,11 @@ struct SpeechallAPITests {
     }
 
     @Test func example() async throws {
-        let audioData = try Data(contentsOf: URL(filePath: "/Users/atacan/Developer/Repositories/Speechall-SDK/speechall-typescript-sdk/examples/sample-audio.wav"))
+        let audioData = try Data(contentsOf: URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("sample-audio.wav"))
         let response: Operations.transcribe.Output
         do {
             response = try await client.transcribe(
