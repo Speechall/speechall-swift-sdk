@@ -7,7 +7,7 @@ info:
     It allows you to transcribe audio files using various underlying STT providers and models,
     optionally apply custom text replacement rules, and access results in multiple formats.
     The API includes standard endpoints for transcription and endpoints compatible with the OpenAI API structure.
-  version: 0.7.0
+  version: 0.8.0
   termsOfService: https://speechall.com/terms
   contact:
     name: Speechall Support
@@ -450,6 +450,8 @@ components:
         - openai
         - revai
         - speechmatics
+        - togetherai
+        - xai
     OpenTranscriptionModelIdentifier:
       type: string
       description: An opaque Speech-to-Text model identifier in `provider.model_name` form. Obtain currently available values from the `/speech-to-text-models` endpoint.
@@ -517,6 +519,8 @@ components:
         - revai.machine
         - speechmatics.enhanced
         - speechmatics.standard
+        - togetherai.nvidia-parakeet-tdt-0.6b-v3
+        - xai.grok-stt
 
     BaseTranscriptionConfiguration:
       type: object
