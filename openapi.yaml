@@ -14,7 +14,7 @@ info:
     with the OpenAI API structure.
 
     '
-  version: 0.7.0
+  version: 0.8.0
   termsOfService: https://speechall.com/terms
   contact:
     name: Speechall Support
@@ -534,6 +534,8 @@ components:
       - openai
       - revai
       - speechmatics
+      - togetherai
+      - xai
     OpenTranscriptionModelIdentifier:
       type: string
       description: An opaque Speech-to-Text model identifier in `provider.model_name`
@@ -603,6 +605,8 @@ components:
       - revai.machine
       - speechmatics.enhanced
       - speechmatics.standard
+      - togetherai.nvidia-parakeet-tdt-0.6b-v3
+      - xai.grok-stt
     BaseTranscriptionConfiguration:
       type: object
       description: Common configuration options for transcription, applicable to both

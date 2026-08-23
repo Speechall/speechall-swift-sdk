@@ -226,6 +226,8 @@ public enum Components {
             case openai = "openai"
             case revai = "revai"
             case speechmatics = "speechmatics"
+            case togetherai = "togetherai"
+            case xai = "xai"
         }
         /// An opaque Speech-to-Text model identifier in `provider.model_name` form. Obtain currently available values from the `/speech-to-text-models` endpoint.
         ///
@@ -292,6 +294,8 @@ public enum Components {
             case revai_period_machine = "revai.machine"
             case speechmatics_period_enhanced = "speechmatics.enhanced"
             case speechmatics_period_standard = "speechmatics.standard"
+            case togetherai_period_nvidia_hyphen_parakeet_hyphen_tdt_hyphen_0_period_6b_hyphen_v3 = "togetherai.nvidia-parakeet-tdt-0.6b-v3"
+            case xai_period_grok_hyphen_stt = "xai.grok-stt"
         }
         /// Common configuration options for transcription, applicable to both direct uploads and remote URLs.
         ///
