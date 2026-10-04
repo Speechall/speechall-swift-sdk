@@ -211,7 +211,6 @@ public enum Components {
         ///
         /// - Remark: Generated from `#/components/schemas/TranscriptionProvider`.
         @frozen public enum TranscriptionProvider: String, Codable, Hashable, Sendable, CaseIterable {
-            case amazon = "amazon"
             case assemblyai = "assemblyai"
             case azure = "azure"
             case cloudflare = "cloudflare"
@@ -219,12 +218,13 @@ public enum Components {
             case elevenlabs = "elevenlabs"
             case gemini = "gemini"
             case gladia = "gladia"
-            case google = "google"
             case groq = "groq"
             case ibm = "ibm"
             case mistral = "mistral"
             case openai = "openai"
             case revai = "revai"
+            case smallestai = "smallestai"
+            case soniox = "soniox"
             case speechmatics = "speechmatics"
             case togetherai = "togetherai"
             case xai = "xai"
@@ -237,7 +237,6 @@ public enum Components {
         ///
         /// - Remark: Generated from `#/components/schemas/TranscriptionModelIdentifier`.
         @frozen public enum TranscriptionModelIdentifier: String, Codable, Hashable, Sendable, CaseIterable {
-            case amazon_period_transcribe = "amazon.transcribe"
             case assemblyai_period_universal_hyphen_2 = "assemblyai.universal-2"
             case assemblyai_period_universal_hyphen_3_hyphen_5_hyphen_pro = "assemblyai.universal-3-5-pro"
             case azure_period_standard = "azure.standard"
@@ -279,8 +278,6 @@ public enum Components {
             case gemini_period_gemini_hyphen_2_period_5_hyphen_flash_hyphen_lite = "gemini.gemini-2.5-flash-lite"
             case gemini_period_gemini_hyphen_2_period_5_hyphen_pro = "gemini.gemini-2.5-pro"
             case gladia_period_standard = "gladia.standard"
-            case google_period_enhanced = "google.enhanced"
-            case google_period_standard = "google.standard"
             case groq_period_whisper_hyphen_large_hyphen_v3 = "groq.whisper-large-v3"
             case groq_period_whisper_hyphen_large_hyphen_v3_hyphen_turbo = "groq.whisper-large-v3-turbo"
             case ibm_period_standard = "ibm.standard"
@@ -292,9 +289,14 @@ public enum Components {
             case openai_period_whisper_hyphen_1 = "openai.whisper-1"
             case revai_period_fusion = "revai.fusion"
             case revai_period_machine = "revai.machine"
+            case smallestai_period_pulse_hyphen_pro = "smallestai.pulse-pro"
+            case smallestai_period_pulse = "smallestai.pulse"
+            case soniox_period_stt_hyphen_async_hyphen_v5 = "soniox.stt-async-v5"
             case speechmatics_period_enhanced = "speechmatics.enhanced"
             case speechmatics_period_standard = "speechmatics.standard"
             case togetherai_period_nvidia_hyphen_parakeet_hyphen_tdt_hyphen_0_period_6b_hyphen_v3 = "togetherai.nvidia-parakeet-tdt-0.6b-v3"
+            case togetherai_period_thinkingmachines_hyphen_inkling = "togetherai.thinkingmachines-inkling"
+            case togetherai_period_thinkingmachines_hyphen_inkling_hyphen_small = "togetherai.thinkingmachines-inkling-small"
             case xai_period_grok_hyphen_stt = "xai.grok-stt"
         }
         /// Common configuration options for transcription, applicable to both direct uploads and remote URLs.

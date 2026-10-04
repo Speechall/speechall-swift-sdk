@@ -12,6 +12,7 @@ SHELL := /bin/bash
 # Swift Format Settings
 SWIFT_FORMAT_OPTIONS := -i -p --ignore-unparsable-files --configuration .swift-format
 SWIFT_FORMAT_TARGETS := ./Sources ./Tests
+SWIFT_TEST_FLAGS ?=
 
 # Docker Settings
 DOCKER_IMAGE := swift:latest
@@ -81,8 +82,8 @@ test-on-linux: ## Run swift tests inside a Docker container
 		swift test
 
 regenerate:
-	curl https://raw.githubusercontent.com/Speechall/speechall-openapi/refs/heads/main/openapi.yaml -o original_openapi.yaml
-	uvx --from git+https://github.com/atacan/swift-package-generator-based-on-openapi.git swift-bootstrapper .
+	curl --fail --location https://raw.githubusercontent.com/Speechall/speechall-openapi/refs/heads/main/openapi.yaml -o original_openapi.yaml
+	uvx --system-certs --from git+https://github.com/atacan/swift-package-generator-based-on-openapi.git swift-bootstrapper transform original_openapi.yaml openapi.yaml --overlay openapi-overlay.yaml
 
 generate: ## Generate Swift code from OpenAPI spec
 	@echo "$(YELLOW)Generating Swift code from OpenAPI specification...$(RESET)"
@@ -103,5 +104,5 @@ build: ## Build the Swift package
 
 test: ## Run tests for the package
 	@echo "$(YELLOW)Running tests for SpeechallAPI...$(RESET)"
-	swift test
+	swift test $(SWIFT_TEST_FLAGS)
 	@echo "$(GREEN)Tests complete!$(RESET)"
