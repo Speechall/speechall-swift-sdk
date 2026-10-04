@@ -296,7 +296,6 @@ public enum Components {
             case speechmatics_period_standard = "speechmatics.standard"
             case togetherai_period_nvidia_hyphen_parakeet_hyphen_tdt_hyphen_0_period_6b_hyphen_v3 = "togetherai.nvidia-parakeet-tdt-0.6b-v3"
             case togetherai_period_thinkingmachines_hyphen_inkling = "togetherai.thinkingmachines-inkling"
-            case togetherai_period_thinkingmachines_hyphen_inkling_hyphen_small = "togetherai.thinkingmachines-inkling-small"
             case xai_period_grok_hyphen_stt = "xai.grok-stt"
         }
         /// Common configuration options for transcription, applicable to both direct uploads and remote URLs.
