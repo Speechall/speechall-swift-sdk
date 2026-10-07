@@ -286,6 +286,7 @@ public enum Components {
             case openai_period_gpt_hyphen_4o_hyphen_mini_hyphen_transcribe = "openai.gpt-4o-mini-transcribe"
             case openai_period_gpt_hyphen_4o_hyphen_transcribe = "openai.gpt-4o-transcribe"
             case openai_period_gpt_hyphen_4o_hyphen_transcribe_hyphen_diarize = "openai.gpt-4o-transcribe-diarize"
+            case openai_period_gpt_hyphen_transcribe = "openai.gpt-transcribe"
             case openai_period_whisper_hyphen_1 = "openai.whisper-1"
             case revai_period_fusion = "revai.fusion"
             case revai_period_machine = "revai.machine"
