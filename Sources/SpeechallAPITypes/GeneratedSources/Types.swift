@@ -240,6 +240,7 @@ public enum Components {
             case assemblyai_period_universal_hyphen_2 = "assemblyai.universal-2"
             case assemblyai_period_universal_hyphen_3_hyphen_5_hyphen_pro = "assemblyai.universal-3-5-pro"
             case azure_period_standard = "azure.standard"
+            case microsoft_period_mai_hyphen_transcribe_hyphen_2 = "microsoft.mai-transcribe-2"
             case cloudflare_period_whisper = "cloudflare.whisper"
             case cloudflare_period_whisper_hyphen_large_hyphen_v3_hyphen_turbo = "cloudflare.whisper-large-v3-turbo"
             case cloudflare_period_whisper_hyphen_tiny_hyphen_en = "cloudflare.whisper-tiny-en"
