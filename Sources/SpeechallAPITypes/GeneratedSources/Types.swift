@@ -278,6 +278,7 @@ public enum Components {
             case gemini_period_gemini_hyphen_2_period_5_hyphen_flash = "gemini.gemini-2.5-flash"
             case gemini_period_gemini_hyphen_2_period_5_hyphen_flash_hyphen_lite = "gemini.gemini-2.5-flash-lite"
             case gemini_period_gemini_hyphen_2_period_5_hyphen_pro = "gemini.gemini-2.5-pro"
+            case gemini_period_gemini_hyphen_3_period_5_hyphen_transcribe = "gemini.gemini-3.5-transcribe"
             case gladia_period_standard = "gladia.standard"
             case groq_period_whisper_hyphen_large_hyphen_v3 = "groq.whisper-large-v3"
             case groq_period_whisper_hyphen_large_hyphen_v3_hyphen_turbo = "groq.whisper-large-v3-turbo"

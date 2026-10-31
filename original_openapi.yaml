@@ -503,6 +503,7 @@ components:
         - gemini.gemini-2.5-flash
         - gemini.gemini-2.5-flash-lite
         - gemini.gemini-2.5-pro
+        - gemini.gemini-3.5-transcribe
         - gladia.standard
         - groq.whisper-large-v3
         - groq.whisper-large-v3-turbo
