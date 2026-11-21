@@ -30,7 +30,7 @@ extension SpeechallClient {
     /// If it is a video file, it extracts the audio from it first.
     public func transcribe(
         fileAt fileUrl: URL,
-        withModel modelId: SpeechallAPITypes.Components.Schemas.TranscriptionModelIdentifier,
+        withModel modelId: String,
         inLanguage language: Components.Schemas.TranscriptLanguageCode = .auto,
         withInitialContext initialContext: String? = nil
     ) async throws -> String {
@@ -38,7 +38,7 @@ extension SpeechallClient {
 
         let response = try await client.transcribe(
             query: .init(
-                model: modelId.rawValue,
+                model: modelId,
                 language: language,
                 output_format: .text,
                 punctuation: true,
@@ -54,7 +54,7 @@ extension SpeechallClient {
     /// This is useful if you would like to use streaming audio recording data with the models that expect a file.
     public func transcribe(
         audioBytes: [UInt8],
-        withModel modelId: SpeechallAPITypes.Components.Schemas.TranscriptionModelIdentifier,
+        withModel modelId: String,
         inLanguage language: Components.Schemas.TranscriptLanguageCode = .auto,
         withInitialContext initialContext: String? = nil
     ) async throws -> String {
@@ -75,7 +75,7 @@ extension SpeechallClient {
 
         let response = try await client.transcribe(
             query: .init(
-                model: modelId.rawValue,
+                model: modelId,
                 language: language,
                 output_format: .text,
                 punctuation: true,
@@ -90,7 +90,7 @@ extension SpeechallClient {
     public func subtitlesFor(
         fileAt fileUrl: URL,
         as format: SubtitleFormat,
-        withModel modelId: SpeechallAPITypes.Components.Schemas.TranscriptionModelIdentifier,
+        withModel modelId: String,
         inLanguage language: Components.Schemas.TranscriptLanguageCode = .auto
     ) async throws -> String {
         let body = try await prepareAudioBody(from: fileUrl)
@@ -98,7 +98,7 @@ extension SpeechallClient {
 
         let response = try await client.transcribe(
             query: .init(
-                model: modelId.rawValue,
+                model: modelId,
                 language: language,
                 output_format: outputFormat,
                 punctuation: true
@@ -111,14 +111,14 @@ extension SpeechallClient {
     /// Returns detailed transcription with word-level timestamps
     public func detailedTranscription(
         of fileUrl: URL,
-        withModel modelId: SpeechallAPITypes.Components.Schemas.TranscriptionModelIdentifier,
+        withModel modelId: String,
         inLanguage language: Components.Schemas.TranscriptLanguageCode = .auto
     ) async throws -> Components.Schemas.TranscriptionDetailed {
         let body = try await prepareAudioBody(from: fileUrl)
 
         let response = try await client.transcribe(
             query: .init(
-                model: modelId.rawValue,
+                model: modelId,
                 language: language,
                 output_format: .json,
                 punctuation: true
@@ -133,6 +133,56 @@ extension SpeechallClient {
         case .TranscriptionOnlyText:
             throw TranscriptionError.invalidResponse
         }
+    }
+
+    public func transcribe(
+        fileAt fileUrl: URL,
+        withModel modelId: Components.Schemas.TranscriptionModelIdentifier,
+        inLanguage language: Components.Schemas.TranscriptLanguageCode = .auto,
+        withInitialContext initialContext: String? = nil
+    ) async throws -> String {
+        try await transcribe(
+            fileAt: fileUrl,
+            withModel: modelId.rawValue,
+            inLanguage: language,
+            withInitialContext: initialContext
+        )
+    }
+
+    public func transcribe(
+        audioBytes: [UInt8],
+        withModel modelId: Components.Schemas.TranscriptionModelIdentifier,
+        inLanguage language: Components.Schemas.TranscriptLanguageCode = .auto,
+        withInitialContext initialContext: String? = nil
+    ) async throws -> String {
+        try await transcribe(
+            audioBytes: audioBytes,
+            withModel: modelId.rawValue,
+            inLanguage: language,
+            withInitialContext: initialContext
+        )
+    }
+
+    public func subtitlesFor(
+        fileAt fileUrl: URL,
+        as format: SubtitleFormat,
+        withModel modelId: Components.Schemas.TranscriptionModelIdentifier,
+        inLanguage language: Components.Schemas.TranscriptLanguageCode = .auto
+    ) async throws -> String {
+        try await subtitlesFor(
+            fileAt: fileUrl,
+            as: format,
+            withModel: modelId.rawValue,
+            inLanguage: language
+        )
+    }
+
+    public func detailedTranscription(
+        of fileUrl: URL,
+        withModel modelId: Components.Schemas.TranscriptionModelIdentifier,
+        inLanguage language: Components.Schemas.TranscriptLanguageCode = .auto
+    ) async throws -> Components.Schemas.TranscriptionDetailed {
+        try await detailedTranscription(of: fileUrl, withModel: modelId.rawValue, inLanguage: language)
     }
 }
 

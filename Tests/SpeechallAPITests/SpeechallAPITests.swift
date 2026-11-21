@@ -42,19 +42,19 @@ struct SpeechallAPITests {
          )
     }()
 
-    @Test func listSpeechToTextModelsUseGeneratedEnumIdentifiers() async throws {
+    @Test func listSpeechToTextModelsReturnsUniqueIdentifiers() async throws {
         let response: Operations.listSpeechToTextModels.Output
         do {
             response = try await client.listSpeechToTextModels()
         } catch let error as ClientError {
             if let statusCode = error.response?.status.code,
                statusCode == 429 || (500...599).contains(statusCode) {
-                print("Skipping live model-list enum check because the API returned HTTP \(statusCode): \(error)")
+                print("Skipping live model list check because the API returned HTTP \(statusCode): \(error)")
                 return
             }
             throw error
         } catch {
-            if shouldSkipTransientLiveAPIError(error, operation: "model-list enum") {
+            if shouldSkipTransientLiveAPIError(error, operation: "model list") {
                 return
             }
             throw error
@@ -77,16 +77,16 @@ struct SpeechallAPITests {
             Issue.record("Not found: \(try notFound.body.json.message)")
             return
         case .tooManyRequests(let tooManyRequests):
-            print("Skipping live model-list enum check because the API returned 429: \(tooManyRequests.body)")
+            print("Skipping live model list check because the API returned 429: \(tooManyRequests.body)")
             return
         case .internalServerError(let internalServerError):
-            print("Skipping live model-list enum check because the API returned 500: \(internalServerError.body)")
+            print("Skipping live model list check because the API returned 500: \(internalServerError.body)")
             return
         case .serviceUnavailable(let serviceUnavailable):
-            print("Skipping live model-list enum check because the API returned 503: \(serviceUnavailable.body)")
+            print("Skipping live model list check because the API returned 503: \(serviceUnavailable.body)")
             return
         case .gatewayTimeout(let gatewayTimeout):
-            print("Skipping live model-list enum check because the API returned 504: \(gatewayTimeout.body)")
+            print("Skipping live model list check because the API returned 504: \(gatewayTimeout.body)")
             return
         case .undocumented(let statusCode, _):
             Issue.record("Undocumented response with status code \(String(statusCode))")
@@ -94,7 +94,6 @@ struct SpeechallAPITests {
         }
 
         let apiIDs = models.map(\.id).sorted()
-        let generatedIDs = Components.Schemas.TranscriptionModelIdentifier.allCases.map(\.rawValue).sorted()
 
         print("Speech-to-text models returned by API (\(apiIDs.count)):")
         for modelID in apiIDs {
@@ -106,30 +105,15 @@ struct SpeechallAPITests {
             "Every model ID should be in `provider.model` format. IDs: \(apiIDs.joined(separator: ", "))"
         )
 
-        let apiIDSet = Set(apiIDs)
-        let generatedIDSet = Set(generatedIDs)
         let duplicateAPIIDs = Dictionary(grouping: apiIDs, by: { $0 })
             .filter { $0.value.count > 1 }
             .keys
             .sorted()
-        let missingFromGeneratedEnum = apiIDSet.subtracting(generatedIDSet).sorted()
-        let inactiveGeneratedIDs = generatedIDSet.subtracting(apiIDSet).sorted()
 
         #expect(
             duplicateAPIIDs.isEmpty,
             "API returned duplicate model IDs: \(duplicateAPIIDs.joined(separator: ", "))"
         )
-        #expect(
-            missingFromGeneratedEnum.isEmpty,
-            "API returned IDs missing from generated enum: \(missingFromGeneratedEnum.joined(separator: ", "))"
-        )
-
-        if !inactiveGeneratedIDs.isEmpty {
-            print("Generated enum IDs not returned by the live API (\(inactiveGeneratedIDs.count)):")
-            for modelID in inactiveGeneratedIDs {
-                print("- \(modelID)")
-            }
-        }
     }
 
     @Test func example() async throws {

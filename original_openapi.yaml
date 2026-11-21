@@ -7,7 +7,7 @@ info:
     It allows you to transcribe audio files using various underlying STT providers and models,
     optionally apply custom text replacement rules, and access results in multiple formats.
     The API includes standard endpoints for transcription and endpoints compatible with the OpenAI API structure.
-  version: 0.8.0
+  version: 0.9.0
   termsOfService: https://speechall.com/terms
   contact:
     name: Speechall Support
@@ -431,9 +431,18 @@ paths:
 
 components:
   schemas:
+    OpenTranscriptionProvider:
+      type: string
+      description: >
+        An opaque Speech-to-Text provider identifier. New providers can appear
+        without an SDK update. Known values are listed in `TranscriptionProvider`.
+      example: "openai"
+
     TranscriptionProvider:
       type: string
-      description: The identifier for the underlying Speech-to-Text service provider (e.g., 'openai', 'deepgram').
+      description: >
+        Known provider identifiers at SDK generation time. Helper only and
+        non-exhaustive. Provider fields use `OpenTranscriptionProvider`.
       enum:
         - assemblyai
         - azure
@@ -459,7 +468,10 @@ components:
 
     TranscriptionModelIdentifier:
       type: string
-      description: Unique identifier for a specific Speech-to-Text model, composed as `provider.model_name`. Used to select the engine for transcription.
+      description: >
+        Known model identifiers (`provider.model_name`) at SDK generation time.
+        Use these constants with `OpenTranscriptionModelIdentifier` fields.
+        The live list is available at `/speech-to-text-models`.
       example: "openai.whisper-1"
       enum:
         - assemblyai.universal-2
@@ -831,6 +843,16 @@ components:
         - start
         - end
 
+    SpeechToTextModelModelType:
+      type: string
+      description: Known `SpeechToTextModel.model_type` values for use as constants. The field accepts any string.
+      enum: [general, phone_call, video, command_and_search, medical, legal, voicemail, meeting]
+
+    SpeechToTextModelAccuracyTier:
+      type: string
+      description: Known `SpeechToTextModel.accuracy_tier` values for use as constants. The field accepts any string.
+      enum: [basic, standard, enhanced, premium]
+
     SpeechToTextModel:
       type: object
       description: Describes an available speech-to-text model, its provider, capabilities, and characteristics.
@@ -850,7 +872,7 @@ components:
           description: A user-friendly name for the model.
           example: "Deepgram Nova 2 - General"
         provider:
-          $ref: "#/components/schemas/TranscriptionProvider"
+          $ref: "#/components/schemas/OpenTranscriptionProvider"
           description: The provider of this model.
         description:
           type: string
@@ -928,26 +950,12 @@ components:
         model_type:
           type: string
           nullable: true
-          description: The primary type or training domain of the model. Helps identify suitability for different audio types.
-          enum:
-            - general
-            - phone_call
-            - video
-            - command_and_search
-            - medical
-            - legal
-            - voicemail
-            - meeting
+          description: The primary type or training domain of the model. Helps identify suitability for different audio types. Known values are listed in `SpeechToTextModelModelType`.
           example: "general"
         accuracy_tier:
           type: string
           nullable: true
-          description: A general indication of the model's expected accuracy level relative to other models. Not a guaranteed metric.
-          enum:
-            - basic
-            - standard
-            - enhanced
-            - premium
+          description: A general indication of the model's expected accuracy level relative to other models. Not a guaranteed metric. Known values are listed in `SpeechToTextModelAccuracyTier`.
           example: "enhanced"
         supported_audio_encodings:
           type: array
