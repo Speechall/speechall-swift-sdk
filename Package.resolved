@@ -239,8 +239,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/atacan/UsefulThings",
       "state" : {
-        "branch" : "main",
-        "revision" : "c0e92c20c4227ac75313efaeaf632f025e875a25"
+        "revision" : "21c9648edeb7fbdd47f8e544b1ad2d356aebf3d2",
+        "version" : "1.0.0"
       }
     },
     {
