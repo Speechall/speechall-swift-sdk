@@ -21,7 +21,7 @@ Add SpeechallAPI to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Speechall/speechall-swift-sdk", from: "0.1.0")
+    .package(url: "https://github.com/Speechall/speechall-swift-sdk", from: "4.0.0")
 ]
 ```
 
@@ -47,7 +47,7 @@ let client = SpeechallClient(apiKey: "your-api-key")
 // Transcribe an audio or video file to plain text
 let transcription = try await client.transcribe(
     fileAt: URL(filePath: "/path/to/audio.mp3"),
-    withModel: .cloudflare_period_whisper
+    withModel: "openai.whisper-1"
 )
 
 print(transcription)
@@ -75,7 +75,7 @@ let text = try await client.transcribe(
 let srtSubtitles = try await client.subtitlesFor(
     fileAt: videoUrl,
     as: .srt,
-    withModel: .assemblyai_period_best,
+    withModel: "assemblyai.universal-2",
     inLanguage: .auto
 )
 
@@ -83,7 +83,7 @@ let srtSubtitles = try await client.subtitlesFor(
 let vttSubtitles = try await client.subtitlesFor(
     fileAt: videoUrl,
     as: .vtt,
-    withModel: .assemblyai_period_best
+    withModel: "assemblyai.universal-2"
 )
 ```
 
@@ -113,22 +113,14 @@ for word in detailed.words ?? [] {
 
 ## Available Models
 
-The SDK supports a wide range of speech-to-text models from various providers:
+Pass the model ID as a string, for example `withModel: "openai.whisper-1"`.
+Query `/speech-to-text-models` for the current catalog.
+`Components.Schemas.TranscriptionModelIdentifier` provides known constants and is also accepted by the convenience methods.
 
-| Provider | Model Identifiers |
-|----------|------------------|
-| OpenAI | `openai.whisper_1`, `openai.gpt_4o_transcribe`, `openai.gpt_4o_mini_transcribe` |
-| Cloudflare | `cloudflare.whisper` |
-| Deepgram | `deepgram.nova_2`, `deepgram.nova`, `deepgram.base`, `deepgram.whisper_large`, etc. |
-| AssemblyAI | `assemblyai.best`, `assemblyai.nano` |
-| Groq | `groq.whisper_large_v3`, `groq.whisper_large_v3_turbo`, `groq.distil_whisper_large_v3_en` |
-| ElevenLabs | `elevenlabs.scribe_v1` |
-| Gladia | `gladia.default` |
-| Amazon | `amazon.transcribe` |
-| RevAI | `revai.default` |
-| And more... | |
-
-Use autocomplete on `Components.Schemas.TranscriptionModelIdentifier` to see all available options.
+In SDK 4.0, `SpeechToTextModel.provider` is a string and `model_type` and
+`accuracy_tier` are optional strings. Use the `.rawValue` of the
+`TranscriptionProvider`, `SpeechToTextModelModelType`, and
+`SpeechToTextModelAccuracyTier` enums when comparing against known values.
 
 ## Advanced Usage: Full API Access
 

@@ -207,7 +207,13 @@ public enum Servers {
 public enum Components {
     /// Types generated from the `#/components/schemas` section of the OpenAPI document.
     public enum Schemas {
-        /// The identifier for the underlying Speech-to-Text service provider (e.g., 'openai', 'deepgram').
+        /// An opaque Speech-to-Text provider identifier. New providers can appear without an SDK update. Known values are listed in `TranscriptionProvider`.
+        ///
+        ///
+        /// - Remark: Generated from `#/components/schemas/OpenTranscriptionProvider`.
+        public typealias OpenTranscriptionProvider = Swift.String
+        /// Known provider identifiers at SDK generation time. Helper only and non-exhaustive. Provider fields use `OpenTranscriptionProvider`.
+        ///
         ///
         /// - Remark: Generated from `#/components/schemas/TranscriptionProvider`.
         @frozen public enum TranscriptionProvider: String, Codable, Hashable, Sendable, CaseIterable {
@@ -233,7 +239,8 @@ public enum Components {
         ///
         /// - Remark: Generated from `#/components/schemas/OpenTranscriptionModelIdentifier`.
         public typealias OpenTranscriptionModelIdentifier = Swift.String
-        /// Unique identifier for a specific Speech-to-Text model, composed as `provider.model_name`. Used to select the engine for transcription.
+        /// Known model identifiers (`provider.model_name`) at SDK generation time. Use these constants with `OpenTranscriptionModelIdentifier` fields. The live list is available at `/speech-to-text-models`.
+        ///
         ///
         /// - Remark: Generated from `#/components/schemas/TranscriptionModelIdentifier`.
         @frozen public enum TranscriptionModelIdentifier: String, Codable, Hashable, Sendable, CaseIterable {
@@ -797,6 +804,28 @@ public enum Components {
                 case confidence
             }
         }
+        /// Known `SpeechToTextModel.model_type` values for use as constants. The field accepts any string.
+        ///
+        /// - Remark: Generated from `#/components/schemas/SpeechToTextModelModelType`.
+        @frozen public enum SpeechToTextModelModelType: String, Codable, Hashable, Sendable, CaseIterable {
+            case general = "general"
+            case phone_call = "phone_call"
+            case video = "video"
+            case command_and_search = "command_and_search"
+            case medical = "medical"
+            case legal = "legal"
+            case voicemail = "voicemail"
+            case meeting = "meeting"
+        }
+        /// Known `SpeechToTextModel.accuracy_tier` values for use as constants. The field accepts any string.
+        ///
+        /// - Remark: Generated from `#/components/schemas/SpeechToTextModelAccuracyTier`.
+        @frozen public enum SpeechToTextModelAccuracyTier: String, Codable, Hashable, Sendable, CaseIterable {
+            case basic = "basic"
+            case standard = "standard"
+            case enhanced = "enhanced"
+            case premium = "premium"
+        }
         /// Describes an available speech-to-text model, its provider, capabilities, and characteristics.
         ///
         /// - Remark: Generated from `#/components/schemas/SpeechToTextModel`.
@@ -808,7 +837,7 @@ public enum Components {
             /// - Remark: Generated from `#/components/schemas/SpeechToTextModel/display_name`.
             public var display_name: Swift.String
             /// - Remark: Generated from `#/components/schemas/SpeechToTextModel/provider`.
-            public var provider: Components.Schemas.TranscriptionProvider
+            public var provider: Components.Schemas.OpenTranscriptionProvider
             /// A brief description of the model, its intended use case, or version notes.
             ///
             /// - Remark: Generated from `#/components/schemas/SpeechToTextModel/description`.
@@ -859,36 +888,14 @@ public enum Components {
             ///
             /// - Remark: Generated from `#/components/schemas/SpeechToTextModel/release_date`.
             public var release_date: Swift.String?
-            /// The primary type or training domain of the model. Helps identify suitability for different audio types.
+            /// The primary type or training domain of the model. Helps identify suitability for different audio types. Known values are listed in `SpeechToTextModelModelType`.
             ///
             /// - Remark: Generated from `#/components/schemas/SpeechToTextModel/model_type`.
-            @frozen public enum model_typePayload: String, Codable, Hashable, Sendable, CaseIterable {
-                case general = "general"
-                case phone_call = "phone_call"
-                case video = "video"
-                case command_and_search = "command_and_search"
-                case medical = "medical"
-                case legal = "legal"
-                case voicemail = "voicemail"
-                case meeting = "meeting"
-            }
-            /// The primary type or training domain of the model. Helps identify suitability for different audio types.
-            ///
-            /// - Remark: Generated from `#/components/schemas/SpeechToTextModel/model_type`.
-            public var model_type: Components.Schemas.SpeechToTextModel.model_typePayload?
-            /// A general indication of the model's expected accuracy level relative to other models. Not a guaranteed metric.
+            public var model_type: Swift.String?
+            /// A general indication of the model's expected accuracy level relative to other models. Not a guaranteed metric. Known values are listed in `SpeechToTextModelAccuracyTier`.
             ///
             /// - Remark: Generated from `#/components/schemas/SpeechToTextModel/accuracy_tier`.
-            @frozen public enum accuracy_tierPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                case basic = "basic"
-                case standard = "standard"
-                case enhanced = "enhanced"
-                case premium = "premium"
-            }
-            /// A general indication of the model's expected accuracy level relative to other models. Not a guaranteed metric.
-            ///
-            /// - Remark: Generated from `#/components/schemas/SpeechToTextModel/accuracy_tier`.
-            public var accuracy_tier: Components.Schemas.SpeechToTextModel.accuracy_tierPayload?
+            public var accuracy_tier: Swift.String?
             /// A list of audio encodings that this model supports or is optimized for (e.g., LINEAR16, FLAC, MP3, Opus).
             ///
             /// - Remark: Generated from `#/components/schemas/SpeechToTextModel/supported_audio_encodings`.
@@ -955,8 +962,8 @@ public enum Components {
             ///   - max_file_size_bytes: The maximum size of a single audio file (in bytes) that can be uploaded for processing by this model. May vary by provider or plan.
             ///   - version: The specific version identifier for the model.
             ///   - release_date: The date when this specific version of the model was released or last updated.
-            ///   - model_type: The primary type or training domain of the model. Helps identify suitability for different audio types.
-            ///   - accuracy_tier: A general indication of the model's expected accuracy level relative to other models. Not a guaranteed metric.
+            ///   - model_type: The primary type or training domain of the model. Helps identify suitability for different audio types. Known values are listed in `SpeechToTextModelModelType`.
+            ///   - accuracy_tier: A general indication of the model's expected accuracy level relative to other models. Not a guaranteed metric. Known values are listed in `SpeechToTextModelAccuracyTier`.
             ///   - supported_audio_encodings: A list of audio encodings that this model supports or is optimized for (e.g., LINEAR16, FLAC, MP3, Opus).
             ///   - supported_sample_rates: A list of audio sample rates (in Hz) that this model supports or is optimized for.
             ///   - speaker_labels: Indicates whether the model can provide speaker labels for the transcription.
@@ -972,7 +979,7 @@ public enum Components {
             public init(
                 id: Components.Schemas.OpenTranscriptionModelIdentifier,
                 display_name: Swift.String,
-                provider: Components.Schemas.TranscriptionProvider,
+                provider: Components.Schemas.OpenTranscriptionProvider,
                 description: Swift.String? = nil,
                 cost_per_second_usd: Swift.Double? = nil,
                 is_available: Swift.Bool,
@@ -985,8 +992,8 @@ public enum Components {
                 max_file_size_bytes: Swift.Int64? = nil,
                 version: Swift.String? = nil,
                 release_date: Swift.String? = nil,
-                model_type: Components.Schemas.SpeechToTextModel.model_typePayload? = nil,
-                accuracy_tier: Components.Schemas.SpeechToTextModel.accuracy_tierPayload? = nil,
+                model_type: Swift.String? = nil,
+                accuracy_tier: Swift.String? = nil,
                 supported_audio_encodings: [Swift.String]? = nil,
                 supported_sample_rates: [Swift.Int]? = nil,
                 speaker_labels: Swift.Bool? = nil,
